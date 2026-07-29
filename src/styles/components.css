@@ -1,0 +1,515 @@
+/* =========================================================================
+   COMPONENTS — style cho bộ component dùng chung
+   Xem tokens.css để biết vì sao KHÔNG có màu đỏ nào ở đây.
+   ========================================================================= */
+
+/* --- Thanh đầu trang -------------------------------------------------- */
+
+.thanh-dau {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(247, 248, 246, .88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--vien);
+}
+
+.thanh-dau__trong {
+  max-width: var(--rong-toi-da);
+  margin: 0 auto;
+  padding: var(--kc-3) var(--kc-4);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--kc-3);
+}
+
+.thanh-dau__ten-app {
+  font-weight: 700;
+  font-size: var(--cd-lon);
+  letter-spacing: -0.02em;
+  color: var(--nhan-dam);
+}
+
+.thanh-dau__chao {
+  font-size: var(--cd-phu);
+  color: var(--chu-nhat);
+}
+
+/* --- Thanh điều hướng dưới ------------------------------------------- */
+
+.thanh-duoi {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--vien);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.thanh-duoi__muc {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 1px 10px;
+  text-decoration: none;
+  color: var(--chu-mo);
+  transition: color .15s;
+  min-width: 0;
+}
+
+/* Mục đang xem: chấm mốc phía trên + khối nền quanh icon + nhãn đậm màu —
+   ba tín hiệu cùng lúc để nhận ra ngay đang ở trang nào, không chỉ dựa
+   vào đổi màu chữ (quá mờ để nhận biết nhanh). */
+.thanh-duoi__muc--dang-xem { color: var(--nhan-dam); }
+
+.thanh-duoi__muc--dang-xem::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--nhan);
+}
+
+.thanh-duoi__icon {
+  font-size: 1.05rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 22px;
+  border-radius: 999px;
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.thanh-duoi__muc--dang-xem .thanh-duoi__icon {
+  background: var(--nhan-nhat);
+  color: var(--nhan-dam);
+  transform: scale(1.12);
+}
+
+.thanh-duoi__nhan {
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.thanh-duoi__muc--dang-xem .thanh-duoi__nhan {
+  font-weight: 700;
+}
+
+/* --- Miễn trừ trách nhiệm (R-31) -------------------------------------- */
+
+.mien-tru {
+  font-size: var(--cd-nho);
+  line-height: 1.5;
+  color: var(--chu-mo);
+  text-align: center;
+  padding: 0 var(--kc-2);
+}
+
+.mien-tru--gon { text-align: left; padding: 0; }
+
+/* --- Thông điệp an toàn tĩnh (R-28) ----------------------------------- */
+
+.thong-diep-an-toan {
+  font-size: var(--cd-phu);
+  line-height: 1.6;
+  color: var(--chu-nhat);
+  text-align: center;
+  padding: var(--kc-4);
+  background: var(--nhan-nhat);
+  border-radius: var(--bo-vua);
+}
+
+/* --- Nhãn trạng thái — MỘT màu cho cả 4 nhãn (R-08, R-09) ------------- */
+
+.nhan-trang-thai {
+  flex: none;
+  font-size: var(--cd-nho);
+  font-weight: 600;
+  color: var(--mau-nhan-chu);
+  background: var(--mau-nhan-nen);
+  border: 1px solid var(--mau-nhan-vien);
+  border-radius: var(--bo-tron);
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* --- Trạng thái rỗng --------------------------------------------------- */
+
+.trang-thai-rong {
+  font-size: var(--cd-phu);
+  color: var(--chu-mo);
+  text-align: center;
+  padding: var(--kc-5) var(--kc-3);
+}
+
+/* --- Vòng tròn phần trăm ---------------------------------------------- */
+
+.vong-tron {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--kc-2);
+  text-align: center;
+}
+
+.vong-tron__ray { stroke: var(--be-mat-chim); }
+
+/* Vòng phụ (năng lượng) — màu khác vòng chính để phân biệt VAI TRÒ.
+   Hai màu không mang nghĩa tốt/xấu, không có ngưỡng đổi màu. */
+.vong-tron__cung { stroke: var(--nhan-phu); transition: stroke-dashoffset .5s ease; }
+.vong-tron--chinh .vong-tron__ray { stroke: var(--nhan-nhat); }
+.vong-tron--chinh .vong-tron__cung { stroke: var(--nhan); }
+
+.vong-tron__so {
+  font-family: var(--font);
+  font-size: 1.4rem;
+  font-weight: 700;
+  fill: var(--chu);
+}
+.vong-tron--chinh .vong-tron__so { font-size: 1.75rem; }
+
+.vong-tron__nhan {
+  font-size: var(--cd-nho);
+  color: var(--chu-nhat);
+  max-width: 15ch;
+  line-height: 1.35;
+}
+
+/* --- Thẻ món ---------------------------------------------------------- */
+
+.the-mon {
+  flex: none;
+  width: 168px;
+  text-align: left;
+  background: var(--be-mat);
+  border: 1px solid var(--vien);
+  border-radius: var(--bo-vua);
+  overflow: hidden;
+  padding: 0;
+  transition: border-color .15s, transform .15s;
+}
+.the-mon:hover { border-color: var(--vien-dam); transform: translateY(-1px); }
+
+.the-mon__anh {
+  aspect-ratio: 4 / 3;
+  background: var(--be-mat-chim);
+  display: grid;
+  place-items: center;
+}
+
+.the-mon__anh img { width: 100%; height: 100%; object-fit: cover; }
+
+.the-mon__anh-trong {
+  font-size: var(--cd-nho);
+  color: var(--chu-mo);
+}
+
+.the-mon__than {
+  padding: var(--kc-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.the-mon__ten {
+  font-weight: 650;
+  font-size: var(--cd-phu);
+  line-height: 1.35;
+}
+
+.the-mon__quan,
+.the-mon__gio {
+  font-size: var(--cd-nho);
+  color: var(--chu-mo);
+}
+
+.the-mon__day {
+  display: flex;
+  align-items: baseline;
+  gap: var(--kc-1);
+  margin-top: 2px;
+}
+
+.the-mon__gia { font-weight: 700; font-size: var(--cd-phu); color: var(--nhan-dam); }
+.the-mon__cham { color: var(--chu-mo); }
+.the-mon__phu { font-size: var(--cd-nho); color: var(--chu-nhat); }
+
+/* --- Dải cuộn ngang ---------------------------------------------------- */
+
+.dai-ngang {
+  display: flex;
+  gap: var(--kc-3);
+  overflow-x: auto;
+  padding-bottom: var(--kc-2);
+  margin: 0 calc(var(--kc-4) * -1);
+  padding-left: var(--kc-4);
+  padding-right: var(--kc-4);
+  scroll-snap-type: x proximity;
+}
+.dai-ngang > * { scroll-snap-align: start; }
+.dai-ngang--tren { margin-top: var(--kc-4); }
+
+/* --- Ô tìm kiếm --------------------------------------------------------
+   Dùng chung ở "Ăn gì hôm nay" và "Quán ăn gần đây". */
+
+.o-tim-kiem {
+  width: 100%;
+  padding: 10px var(--kc-3);
+  border-radius: var(--bo-tron);
+  border: 1px solid var(--vien-dam);
+  background: var(--be-mat);
+  font-size: var(--cd-thuong);
+  font-family: var(--font);
+}
+
+/* --- Thanh công cụ lọc -------------------------------------------------
+   3 lọc trung tính + 1 lọc dị ứng (LocDiUng.jsx, tách riêng, §7.2). */
+
+.thanh-loc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-3);
+  margin: var(--kc-3) 0;
+}
+
+.thanh-loc__hang {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kc-4);
+}
+
+.thanh-loc__muc {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.thanh-loc__muc select {
+  padding: 8px 10px;
+  border-radius: var(--bo-nho);
+  border: 1px solid var(--vien-dam);
+  background: var(--be-mat);
+  font-size: var(--cd-phu);
+  font-family: var(--font);
+}
+
+.thanh-loc__muc input[type='range'] {
+  width: 100%;
+  accent-color: var(--nhan);
+}
+
+/* --- Bộ lọc dị ứng (LocDiUng.jsx) — CHỈ nơi dùng --mau-di-ung --------- */
+
+.loc-di-ung {
+  padding-top: var(--kc-3);
+  border-top: 1px dashed var(--vien-dam);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-2);
+}
+
+.loc-di-ung__nut-nhom { display: flex; gap: var(--kc-2); }
+
+.loc-di-ung__nut {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: var(--bo-tron);
+  border: 1px solid var(--mau-di-ung-vien);
+  background: var(--mau-di-ung-nen);
+  color: var(--mau-di-ung);
+  font-size: var(--cd-phu);
+  font-weight: 600;
+  transition: background .15s, color .15s;
+}
+
+.loc-di-ung__nut--dang-bat {
+  background: var(--mau-di-ung);
+  border-color: var(--mau-di-ung);
+  color: #fff;
+}
+
+.loc-di-ung__trang-thai {
+  font-size: var(--cd-nho);
+  color: var(--mau-di-ung);
+  font-weight: 600;
+}
+
+/* --- Lưới thẻ (Khu B "Ăn gì hôm nay") — CSS grid auto-fit, §2.2 ------- */
+
+.luoi-mon {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--kc-3);
+}
+.luoi-mon > .the-mon { width: auto; }
+
+/* --- Modal chi tiết món (ModalMon.jsx) --------------------------------- */
+
+.modal-nen {
+  position: fixed;
+  inset: 0;
+  background: rgba(29, 36, 32, .45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+@media (min-width: 720px) {
+  .modal-nen { align-items: center; padding: var(--kc-5); }
+}
+
+.modal-mon {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--be-mat);
+  border-radius: var(--bo-lon) var(--bo-lon) 0 0;
+  box-shadow: var(--bong-noi);
+}
+@media (min-width: 720px) {
+  .modal-mon { border-radius: var(--bo-lon); }
+}
+
+.modal-mon__dong {
+  position: absolute;
+  top: var(--kc-3);
+  right: var(--kc-3);
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, .92);
+  border-radius: var(--bo-tron);
+  font-size: 1rem;
+  z-index: 1;
+}
+
+.modal-mon__anh {
+  aspect-ratio: 16 / 9;
+  background: var(--be-mat-chim);
+  display: grid;
+  place-items: center;
+  color: var(--chu-mo);
+  font-size: var(--cd-phu);
+}
+.modal-mon__anh img { width: 100%; height: 100%; object-fit: cover; }
+
+.modal-mon__than {
+  padding: var(--kc-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-3);
+}
+
+.modal-mon__ten { font-size: var(--cd-tieu-de); font-weight: 700; line-height: 1.3; }
+.modal-mon__gia { font-weight: 700; color: var(--nhan-dam); font-size: var(--cd-lon); }
+
+.modal-mon__dinh-duong {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--kc-3);
+  background: var(--be-mat-chim);
+  border-radius: var(--bo-vua);
+  padding: var(--kc-3);
+  margin: 0;
+}
+.modal-mon__dinh-duong dt { font-size: var(--cd-nho); color: var(--chu-mo); }
+.modal-mon__dinh-duong dd { margin: 0; font-weight: 650; font-size: var(--cd-phu); }
+
+.modal-mon__thanh-phan { font-size: var(--cd-phu); line-height: 1.5; }
+
+.modal-mon__da-ghi {
+  text-align: center;
+  font-weight: 600;
+  color: var(--nhan-dam);
+  background: var(--nhan-nhat);
+  border-radius: var(--bo-vua);
+  padding: 10px;
+}
+
+.modal-mon__bi-chan {
+  text-align: center;
+  color: var(--chu-nhat);
+  background: var(--be-mat-chim);
+  border-radius: var(--bo-vua);
+  padding: 10px;
+}
+
+/* --- Checkbox đồng ý (R-34) --------------------------------------------- */
+
+.checkbox-dong-y {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--kc-2);
+  padding: var(--kc-3);
+  background: var(--be-mat-chim);
+  border-radius: var(--bo-vua);
+  cursor: pointer;
+}
+
+.checkbox-dong-y input { margin-top: 3px; flex: none; accent-color: var(--nhan); }
+
+.checkbox-dong-y__noi-dung {
+  font-size: var(--cd-phu);
+  line-height: 1.5;
+  color: var(--chu-nhat);
+}
+.checkbox-dong-y__noi-dung strong { color: var(--chu); }
+
+/* --- Bảng thử nghiệm (sẽ gỡ) ------------------------------------------ */
+
+.bang-thu {
+  border: 1px dashed var(--vien-dam);
+  border-radius: var(--bo-vua);
+  background: repeating-linear-gradient(
+    45deg, transparent, transparent 8px,
+    rgba(0, 0, 0, .012) 8px, rgba(0, 0, 0, .012) 16px
+  );
+}
+
+.bang-thu__nut {
+  width: 100%;
+  text-align: left;
+  padding: var(--kc-3) var(--kc-4);
+  font-size: var(--cd-phu);
+  font-weight: 600;
+  color: var(--chu-nhat);
+}
+
+.bang-thu__than {
+  padding: 0 var(--kc-4) var(--kc-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-2);
+}
+
+.bang-thu__ghi-chu {
+  font-size: var(--cd-nho);
+  color: var(--chu-mo);
+  margin-bottom: var(--kc-1);
+}
+
+.bang-thu__dong {
+  display: flex;
+  align-items: center;
+  gap: var(--kc-2);
+  font-size: var(--cd-phu);
+  cursor: pointer;
+}

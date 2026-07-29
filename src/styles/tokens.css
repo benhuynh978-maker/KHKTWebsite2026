@@ -1,0 +1,89 @@
+/* =========================================================================
+   DESIGN TOKENS — biến dùng chung toàn hệ thống
+   -------------------------------------------------------------------------
+   RÀNG BUỘC ĐẠO ĐỨC ĐƯỢC ĐÓNG CỨNG Ở ĐÂY (không phải nhớ thủ công):
+
+   • KHÔNG có biến màu "đỏ / lỗi / cảnh báo" nào dùng được cho dữ liệu
+     dinh dưỡng. R-07, R-08 cấm phán xét; Dashboard §3.2 và Lịch sử §4.2
+     cấm tô màu phân biệt theo nhãn. Không có token thì không lỡ tay dùng.
+
+   • Màu cảnh báo duy nhất trong hệ thống là --mau-di-ung, đặt tên gắn
+     thẳng vào công dụng: CHỈ dùng cho bộ lọc an toàn dị ứng
+     (Ăn gì hôm nay §7.2 — "tông cảnh báo khác với tông trung tính của
+     3 lọc còn lại, vì đây là an toàn sức khoẻ").
+     Dùng nó cho bất cứ việc gì khác là sai quy tắc.
+
+   • 4 nhãn trạng thái (Trong lộ trình / Ngoài lộ trình / Gợi ý nhanh /
+     Tự chọn) dùng CHUNG --mau-nhan-*. Không có biến thể theo nhãn.
+   ========================================================================= */
+
+:root {
+  /* --- Màu nền & bề mặt --- */
+  --nen: #f7f8f6;
+  --be-mat: #ffffff;
+  --be-mat-chim: #f1f3ef;
+
+  /* --- Chữ --- */
+  --chu: #1d2420;
+  --chu-nhat: #5c665f;
+  --chu-mo: #8a938c;
+
+  /* --- Viền --- */
+  --vien: #e2e6e0;
+  --vien-dam: #cdd4cb;
+
+  /* --- Màu nhấn (xanh lá dịu — sức khoẻ, không phán xét) --- */
+  --nhan: #3f7d58;
+  --nhan-dam: #2f6144;
+  --nhan-nhat: #e6f0ea;
+
+  /* --- Màu phụ cho vòng tròn năng lượng (vòng phụ) ---
+     Dashboard §3.2: đạm là vòng CHÍNH, năng lượng là vòng PHỤ.
+     Hai màu khác nhau để phân biệt vai trò, KHÔNG mang nghĩa tốt/xấu. */
+  --nhan-phu: #c9873f;
+  --nhan-phu-nhat: #f7ede0;
+
+  /* --- Nhãn trạng thái: MỘT màu duy nhất cho cả 4 nhãn ---
+     Lịch sử §4.2 + §7.2: không tô đỏ "Ngoài lộ trình",
+     không tô xanh "Trong lộ trình". Cùng một màu chữ trung tính. */
+  --mau-nhan-chu: #5c665f;
+  --mau-nhan-nen: #eef1ec;
+  --mau-nhan-vien: #dde2da;
+
+  /* --- Màu an toàn dị ứng — CHỈ dùng cho bộ lọc/nhãn dị ứng --- */
+  --mau-di-ung: #b4541f;
+  --mau-di-ung-nen: #fdf0e8;
+  --mau-di-ung-vien: #f0cdb6;
+
+  /* --- Bo góc --- */
+  --bo-nho: 8px;
+  --bo-vua: 14px;
+  --bo-lon: 20px;
+  --bo-tron: 999px;
+
+  /* --- Khoảng cách --- */
+  --kc-1: 4px;
+  --kc-2: 8px;
+  --kc-3: 12px;
+  --kc-4: 16px;
+  --kc-5: 24px;
+  --kc-6: 32px;
+  --kc-7: 48px;
+
+  /* --- Chữ --- */
+  --font: 'Be Vietnam Pro', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --cd-nho: 0.75rem;
+  --cd-phu: 0.8125rem;
+  --cd-thuong: 0.9375rem;
+  --cd-lon: 1.0625rem;
+  --cd-tieu-de: 1.25rem;
+  --cd-to: 1.75rem;
+
+  /* --- Đổ bóng --- */
+  --bong-nhe: 0 1px 2px rgba(29, 36, 32, 0.05);
+  --bong-vua: 0 2px 10px rgba(29, 36, 32, 0.07);
+  --bong-noi: 0 8px 30px rgba(29, 36, 32, 0.14);
+
+  /* --- Bề rộng nội dung --- */
+  --rong-toi-da: 640px;
+}

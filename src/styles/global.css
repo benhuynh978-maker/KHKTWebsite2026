@@ -1,0 +1,145 @@
+@import './tokens.css';
+
+/* =========================================================================
+   RESET + NỀN CHUNG — thiết kế mobile-first
+   Học sinh nội trú dùng điện thoại; màn rộng chỉ là trường hợp mở rộng.
+   ========================================================================= */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--cd-thuong);
+  line-height: 1.55;
+  color: var(--chu);
+  background: var(--nen);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p, figure { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+img { display: block; max-width: 100%; }
+
+:focus-visible {
+  outline: 2px solid var(--nhan);
+  outline-offset: 2px;
+  border-radius: var(--bo-nho);
+}
+
+/* --- Khung trang chung ---------------------------------------------- */
+
+.vo-trang {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.than-trang {
+  flex: 1;
+  width: 100%;
+  max-width: var(--rong-toi-da);
+  margin: 0 auto;
+  padding: var(--kc-4) var(--kc-4) var(--kc-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-4);
+}
+
+/* --- Khối (thẻ bao) -------------------------------------------------- */
+
+.khoi {
+  background: var(--be-mat);
+  border: 1px solid var(--vien);
+  border-radius: var(--bo-lon);
+  box-shadow: var(--bong-nhe);
+  overflow: hidden;
+}
+
+.khoi__dau {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--kc-3);
+  padding: var(--kc-4) var(--kc-4) 0;
+}
+
+.khoi__tieu-de {
+  font-size: var(--cd-lon);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.khoi__phu {
+  font-size: var(--cd-phu);
+  color: var(--chu-nhat);
+}
+
+.khoi__than { padding: var(--kc-4); }
+
+/* --- Liên kết dạng chữ ---------------------------------------------- */
+
+.lien-ket {
+  color: var(--nhan-dam);
+  font-size: var(--cd-phu);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.lien-ket:hover { text-decoration: underline; }
+
+/* --- Nút ------------------------------------------------------------- */
+
+.nut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--kc-2);
+  padding: 10px var(--kc-4);
+  border-radius: var(--bo-tron);
+  font-size: var(--cd-thuong);
+  font-weight: 600;
+  border: 1px solid var(--vien-dam);
+  background: var(--be-mat);
+  color: var(--chu);
+  transition: background .15s, border-color .15s;
+}
+.nut:hover { background: var(--be-mat-chim); }
+
+.nut--chinh {
+  background: var(--nhan);
+  border-color: var(--nhan);
+  color: #fff;
+}
+.nut--chinh:hover { background: var(--nhan-dam); border-color: var(--nhan-dam); }
+
+.nut--rong { width: 100%; }
+
+.nut[disabled] { opacity: .5; cursor: not-allowed; }
+
+/* --- Tiện ích -------------------------------------------------------- */
+
+.hang { display: flex; align-items: center; gap: var(--kc-2); }
+.cot  { display: flex; flex-direction: column; }
+.day  { flex: 1; }
+
+.chu-nhat { color: var(--chu-nhat); }
+.chu-nho  { font-size: var(--cd-phu); }
+.chu-be   { font-size: var(--cd-nho); }
+
+@media (min-width: 720px) {
+  .than-trang { padding-top: var(--kc-5); gap: var(--kc-5); }
+}

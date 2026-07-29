@@ -1,0 +1,247 @@
+/* =========================================================================
+   DỮ LIỆU GIẢ — Bảng `mon` (Khu vực 4)
+   Schema theo: "Kế hoạch trang Ăn gì hôm nay" §8.1
+   -------------------------------------------------------------------------
+   4 chỉ số dinh dưỡng đã chốt: kcal, đạm, canxi, sắt.
+   Mỗi chỉ số đi kèm BIÊN SAI SỐ riêng — bắt buộc theo R-04
+   ("Số ước lượng phải kèm biên sai số. Cấm hiển thị số bịa").
+
+   ⚠ SỐ LIỆU DEMO. Khi thu thập thật, mỗi dòng phải đối chiếu
+     Bảng thành phần thực phẩm Việt Nam (Viện Dinh dưỡng Quốc gia)
+     hoặc định lượng chính thức của căng tin, và ghi nguồn.
+
+   ⚠ `thanh_phan_di_ung` CHỈ được lấy từ 14 nhóm chuẩn EU
+     (xem danhSachDiUng.js) — cùng vốn từ với dị ứng khai ở Hồ sơ,
+     nếu không bộ lọc "An toàn dị ứng" sẽ không so khớp được.
+     Tài liệu Hồ sơ & Cài đặt §2.1.1.
+
+   ⚠ Trường `cay` (boolean, một vài món) KHÔNG có trong bản nháp schema
+     "Ăn gì hôm nay" §8.1 — thêm tạm ở đây để trang Lộ trình có dữ liệu
+     minh hoạ cho tầng kiểm tra 5 ("Ghi chú nói 'tránh cay' mà khung lọt
+     món cay → chặn", Kế hoạch dự án §4.1). Cần đưa vào schema chính thức
+     của Khu vực 4 khi làm chi tiết.
+   ========================================================================= */
+
+export const DANH_SACH_MON = [
+  {
+    id: 'm01', quan_id: 'q03', mon_goc_id: 'g01',
+    ten_mon: 'Cơm tấm sườn nướng',
+    gia: 30000,
+    kcal: 680, sai_so_kcal: 70,
+    dam_g: 30, sai_so_dam: 4,
+    canxi_mg: 55, sai_so_canxi: 12,
+    sat_mg: 3.4, sai_so_sat: 0.6,
+    thanh_phan_di_ung: ['dau_nanh'],
+    buoi: ['sang', 'trua', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm02', quan_id: 'q03', mon_goc_id: 'g01',
+    ten_mon: 'Cơm tấm sườn trứng ốp la',
+    gia: 35000,
+    kcal: 780, sai_so_kcal: 80,
+    dam_g: 37, sai_so_dam: 5,
+    canxi_mg: 80, sai_so_canxi: 15,
+    sat_mg: 4.1, sai_so_sat: 0.7,
+    thanh_phan_di_ung: ['dau_nanh', 'trung'],
+    buoi: ['sang', 'trua', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm03', quan_id: 'q03', mon_goc_id: 'g01',
+    ten_mon: 'Cơm tấm sườn (ít cơm)',
+    gia: 28000,
+    kcal: 520, sai_so_kcal: 60,
+    dam_g: 28, sai_so_dam: 4,
+    canxi_mg: 50, sai_so_canxi: 11,
+    sat_mg: 3.2, sai_so_sat: 0.6,
+    thanh_phan_di_ung: ['dau_nanh'],
+    buoi: ['trua', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm04', quan_id: 'q04', mon_goc_id: 'g02',
+    ten_mon: 'Bún bò Huế',
+    gia: 30000,
+    kcal: 520, sai_so_kcal: 65,
+    dam_g: 27, sai_so_dam: 4,
+    canxi_mg: 75, sai_so_canxi: 18,
+    sat_mg: 3.6, sai_so_sat: 0.7,
+    thanh_phan_di_ung: ['giap_xac', 'ca'],
+    buoi: ['sang', 'trua', 'toi'],
+    cay: true,
+    anh_url: null,
+  },
+  {
+    id: 'm05', quan_id: 'q05', mon_goc_id: 'g03',
+    ten_mon: 'Phở bò tái',
+    gia: 35000,
+    kcal: 480, sai_so_kcal: 55,
+    dam_g: 26, sai_so_dam: 3,
+    canxi_mg: 60, sai_so_canxi: 14,
+    sat_mg: 3.9, sai_so_sat: 0.7,
+    thanh_phan_di_ung: ['ca'],
+    buoi: ['sang', 'trua'],
+    anh_url: null,
+  },
+  {
+    id: 'm06', quan_id: 'q01', mon_goc_id: 'g04',
+    ten_mon: 'Cơm gà xối mỡ',
+    gia: 32000,
+    kcal: 720, sai_so_kcal: 75,
+    dam_g: 33, sai_so_dam: 5,
+    canxi_mg: 45, sai_so_canxi: 10,
+    sat_mg: 2.4, sai_so_sat: 0.5,
+    thanh_phan_di_ung: ['dau_nanh', 'ngu_coc_gluten'],
+    buoi: ['trua'],
+    anh_url: null,
+  },
+  {
+    id: 'm07', quan_id: 'q06', mon_goc_id: 'g05',
+    ten_mon: 'Bánh mì thịt nguội',
+    gia: 20000,
+    kcal: 420, sai_so_kcal: 50,
+    dam_g: 17, sai_so_dam: 3,
+    canxi_mg: 65, sai_so_canxi: 15,
+    sat_mg: 2.3, sai_so_sat: 0.5,
+    thanh_phan_di_ung: ['ngu_coc_gluten', 'trung', 'dau_nanh'],
+    buoi: ['sang', 'chieu'],
+    anh_url: null,
+  },
+  {
+    id: 'm08', quan_id: 'q02', mon_goc_id: 'g06',
+    ten_mon: 'Hủ tiếu Nam Vang',
+    gia: 30000,
+    kcal: 450, sai_so_kcal: 55,
+    dam_g: 22, sai_so_dam: 3,
+    canxi_mg: 58, sai_so_canxi: 13,
+    sat_mg: 2.6, sai_so_sat: 0.5,
+    thanh_phan_di_ung: ['giap_xac', 'trung'],
+    buoi: ['sang', 'trua', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm09', quan_id: 'q02', mon_goc_id: 'g07',
+    ten_mon: 'Bún riêu cua',
+    gia: 28000,
+    kcal: 430, sai_so_kcal: 50,
+    dam_g: 21, sai_so_dam: 3,
+    canxi_mg: 195, sai_so_canxi: 35,   // cua đồng + đậu hũ → nguồn canxi tốt
+    sat_mg: 3.1, sai_so_sat: 0.6,
+    thanh_phan_di_ung: ['giap_xac', 'dau_nanh', 'ca'],
+    buoi: ['trua', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm10', quan_id: 'q02', mon_goc_id: 'g08',
+    ten_mon: 'Mì Quảng gà',
+    gia: 30000,
+    kcal: 540, sai_so_kcal: 60,
+    dam_g: 25, sai_so_dam: 4,
+    canxi_mg: 62, sai_so_canxi: 14,
+    sat_mg: 2.8, sai_so_sat: 0.5,
+    thanh_phan_di_ung: ['lac', 'trung', 'ca'],
+    buoi: ['trua', 'toi'],
+    cay: true,
+    anh_url: null,
+  },
+  {
+    id: 'm11', quan_id: 'q01', mon_goc_id: 'g09',
+    ten_mon: 'Xôi mặn',
+    gia: 18000,
+    kcal: 480, sai_so_kcal: 55,
+    dam_g: 14, sai_so_dam: 3,
+    canxi_mg: 40, sai_so_canxi: 9,
+    sat_mg: 2.0, sai_so_sat: 0.4,
+    thanh_phan_di_ung: ['trung', 'dau_nanh'],
+    buoi: ['sang'],
+    anh_url: null,
+  },
+  {
+    id: 'm12', quan_id: 'q01', mon_goc_id: 'g10',
+    ten_mon: 'Cơm chiên Dương Châu',
+    gia: 28000,
+    kcal: 610, sai_so_kcal: 65,
+    dam_g: 20, sai_so_dam: 3,
+    canxi_mg: 70, sai_so_canxi: 16,
+    sat_mg: 2.2, sai_so_sat: 0.4,
+    thanh_phan_di_ung: ['trung', 'giap_xac', 'dau_nanh'],
+    buoi: ['trua'],
+    anh_url: null,
+  },
+  {
+    id: 'm13', quan_id: 'q02', mon_goc_id: 'g11',
+    ten_mon: 'Bún thịt nướng',
+    gia: 28000,
+    kcal: 500, sai_so_kcal: 55,
+    dam_g: 24, sai_so_dam: 3,
+    canxi_mg: 68, sai_so_canxi: 15,
+    sat_mg: 2.7, sai_so_sat: 0.5,
+    thanh_phan_di_ung: ['lac', 'ca', 'dau_nanh'],
+    buoi: ['trua', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm14', quan_id: 'q04', mon_goc_id: 'g12',
+    ten_mon: 'Cháo lòng',
+    gia: 25000,
+    kcal: 380, sai_so_kcal: 45,
+    dam_g: 19, sai_so_dam: 3,
+    canxi_mg: 42, sai_so_canxi: 10,
+    sat_mg: 6.8, sai_so_sat: 1.2,      // nội tạng → nguồn sắt cao
+    thanh_phan_di_ung: ['ca'],
+    buoi: ['sang', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm15', quan_id: 'q01', mon_goc_id: 'g13',
+    ten_mon: 'Cơm canh chua cá',
+    gia: 30000,
+    kcal: 550, sai_so_kcal: 60,
+    dam_g: 26, sai_so_dam: 4,
+    canxi_mg: 110, sai_so_canxi: 22,
+    sat_mg: 2.5, sai_so_sat: 0.5,
+    thanh_phan_di_ung: ['ca', 'dau_nanh'],
+    buoi: ['trua'],
+    anh_url: null,
+  },
+  {
+    id: 'm16', quan_id: 'q07', mon_goc_id: 'g14',
+    ten_mon: 'Cơm đậu hũ sốt cà',
+    gia: 22000,
+    kcal: 490, sai_so_kcal: 55,
+    dam_g: 18, sai_so_dam: 3,
+    canxi_mg: 240, sai_so_canxi: 40,   // đậu hũ → nguồn canxi tốt nhất trong tập
+    sat_mg: 3.0, sai_so_sat: 0.6,
+    thanh_phan_di_ung: ['dau_nanh'],
+    buoi: ['trua', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm17', quan_id: 'q02', mon_goc_id: 'g15',
+    ten_mon: 'Bánh canh cua',
+    gia: 30000,
+    kcal: 460, sai_so_kcal: 50,
+    dam_g: 23, sai_so_dam: 3,
+    canxi_mg: 130, sai_so_canxi: 25,
+    sat_mg: 2.9, sai_so_sat: 0.6,
+    thanh_phan_di_ung: ['giap_xac', 'trung', 'ca'],
+    buoi: ['chieu', 'toi'],
+    anh_url: null,
+  },
+  {
+    id: 'm18', quan_id: 'q03', mon_goc_id: 'g16',
+    ten_mon: 'Cơm bò lúc lắc',
+    gia: 38000,
+    kcal: 700, sai_so_kcal: 70,
+    dam_g: 34, sai_so_dam: 5,
+    canxi_mg: 55, sai_so_canxi: 12,
+    sat_mg: 4.5, sai_so_sat: 0.8,
+    thanh_phan_di_ung: ['dau_nanh', 'ngu_coc_gluten'],
+    buoi: ['trua', 'toi'],
+    anh_url: null,
+  },
+]
+
+/** Tra nhanh 1 món theo id. */
+export const timMon = (id) => DANH_SACH_MON.find((m) => m.id === id) ?? null
