@@ -9,8 +9,14 @@
    nhóm dựng giao diện — tài liệu không nói rõ quy ước này.
 
    Mỗi khoảng tính:
-     • Chi phí = TỔNG cộng dồn trong khoảng (Phần 3.2/4.2/5.2).
-     • Đạm     = TRUNG BÌNH mỗi ngày trong khoảng (không phải tổng).
+     • Chi tiêu = TỔNG cộng dồn trong khoảng (Phần 3.2/4.2/5.2 — tài liệu
+       gọi là "chi phí", đổi tên hiển thị thành "Chi tiêu" theo yêu cầu
+       29/7, số vẫn tính y hệt).
+     • kcal / đạm / glucid / lipid / canxi / sắt = TRUNG BÌNH MỖI NGÀY
+       trong khoảng (không phải tổng) — mở rộng 29/7 từ đúng công thức đã
+       áp dụng cho đạm sang cả 5 chỉ số dinh dưỡng còn lại, cùng lý do:
+       đây là các chỉ số "mỗi ngày cần bao nhiêu", cộng dồn thô sẽ sai bản
+       chất khi so với mốc RNI/ngày.
    Với khoảng ĐÃ KẾT THÚC hẳn, mẫu số là số ngày định nghĩa trọn vẹn (7 cho
    tuần, số ngày thật của tháng). Với khoảng ĐANG DIỄN RA (chứa hôm nay,
    vd "Tuần này"/"Tháng này" chưa qua hết), tài liệu không nói rõ cách tính
@@ -19,9 +25,10 @@
    là suy luận riêng, gần tinh thần mục 9.2 của tài liệu (các trường hợp
    lệch khoảng "để lại quyết định khi dựng thật") — cần bạn xác nhận.
 
-   Trả về mảng bucket { nhan, batDau, ketThuc, chiPhi, dam } — batDau/ketThuc
-   giữ lại (không chỉ dùng nội bộ) để nơi gọi (src/data/api.js) có thể tự
-   kiểm tra thêm, ví dụ "khoảng này có lộ trình nào chạy không" (Phần 3.4).
+   Trả về mảng bucket { nhan, batDau, ketThuc, chiPhi, kcal, dam, glucid,
+   lipid, canxi, sat } — batDau/ketThuc giữ lại (không chỉ dùng nội bộ) để
+   nơi gọi (src/data/api.js) có thể tự kiểm tra thêm, ví dụ "khoảng này có
+   lộ trình nào chạy không" (Phần 3.4).
    ========================================================================= */
 
 const MOT_NGAY_MS = 24 * 60 * 60 * 1000
@@ -77,15 +84,24 @@ function soNgayLamMauSo(batDau, ketThuc) {
   return Math.max(1, Math.round((gioiHan - batDau) / MOT_NGAY_MS))
 }
 
+const CAC_CHI_SO_TRUNG_BINH_NGAY = ['kcal', 'dam', 'glucid', 'lipid', 'canxi', 'sat']
+
 function gomMotKhoang(khoang, danhSach) {
   const trongKhoang = danhSach.filter((d) => {
     const t = new Date(d.thoi_gian_ghi_nhan)
     return t >= khoang.batDau && t < khoang.ketThuc
   })
-  const chiPhi = trongKhoang.reduce((s, d) => s + (d.gia ?? 0), 0)
-  const tongDam = trongKhoang.reduce((s, d) => s + (d.dam ?? 0), 0)
-  const dam = tongDam / soNgayLamMauSo(khoang.batDau, khoang.ketThuc)
-  return { nhan: khoang.nhan, batDau: khoang.batDau, ketThuc: khoang.ketThuc, chiPhi, dam }
+  const soNgay = soNgayLamMauSo(khoang.batDau, khoang.ketThuc)
+  const tong = (khoa) => trongKhoang.reduce((s, d) => s + (d[khoa] ?? 0), 0)
+
+  const ketQua = {
+    nhan: khoang.nhan, batDau: khoang.batDau, ketThuc: khoang.ketThuc,
+    chiPhi: tong('gia'),
+  }
+  for (const khoa of CAC_CHI_SO_TRUNG_BINH_NGAY) {
+    ketQua[khoa] = tong(khoa) / soNgay
+  }
+  return ketQua
 }
 
 /** 7 ngày gần nhất (Phần 2.1). */

@@ -22,6 +22,13 @@ export const gio = (iso) => {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
+/** ISO → "27/07 · 11:20" — dùng cho mốc thời gian bình luận. */
+export const ngayGio = (iso) => {
+  const d = new Date(iso)
+  const ngay = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
+  return `${ngay} · ${gio(iso)}`
+}
+
 /** "Cơm Tấm" → "com tam" — bỏ dấu để tìm kiếm không phân biệt dấu tiếng Việt.
  *  Dùng ̀-ͯ (khối Unicode "Combining Diacritical Marks") thay vì
  *  gõ trực tiếp ký tự dấu vào regex — tránh lỗi hiển thị/encoding giữa

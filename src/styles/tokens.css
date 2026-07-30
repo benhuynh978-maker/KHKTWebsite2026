@@ -55,6 +55,24 @@
   --mau-di-ung-nen: #fdf0e8;
   --mau-di-ung-vien: #f0cdb6;
 
+  /* --- Màu biểu đồ trang Phân tích (thêm 29/7) — MỘT màu cố định/chỉ số,
+     dùng xuyên suốt mọi tab thời gian và cả bản rút gọn ở Dashboard, để
+     "cột chi tiêu luôn xanh dương" trở thành một liên tưởng học được.
+     kcal dùng lại --nhan-phu, đạm dùng lại --nhan — ĐÚNG màu VongTron đã
+     dùng cho năng lượng/đạm, để hai nơi không "nói" hai màu khác nhau cho
+     cùng một chỉ số. 5 màu còn lại lấy theo công thức màu phân loại (xem
+     dataviz skill, palette.md) — đã chạy validate_palette.js: đạt CVD/
+     tương phản ở mọi cặp NGOẠI TRỪ --nhan (chroma dưới ngưỡng phân loại
+     0.10) — chấp nhận có chủ đích vì --nhan là màu thương hiệu đã dùng
+     khắp app (R-07/R-08: cố ý không dùng màu sắc gắt cho dữ liệu dinh
+     dưỡng); bù lại bằng nhãn giá trị + trục hiển thị trực tiếp trên biểu
+     đồ (không phụ thuộc màu để đọc số). */
+  --mau-bd-chi-tieu: #2a78d6;
+  --mau-bd-glucid: #e87ba4;
+  --mau-bd-lipid: #4a3aa7;
+  --mau-bd-canxi: #1baf7a;
+  --mau-bd-sat: #eda100;
+
   /* --- Bo góc --- */
   --bo-nho: 8px;
   --bo-vua: 14px;

@@ -8,6 +8,11 @@
      HIỆN     — ảnh món, tên món, tên quán, giá, khoảng cách, giờ hoạt động
      KHÔNG HIỆN — dinh dưỡng, dị ứng
 
+   ⚠ Thêm 29/7 — số điện thoại quán (yêu cầu riêng, ngoài §4.1): học sinh
+     cần cách liên hệ trực tiếp quán (đặt trước, hỏi món còn hay hết) mà
+     không phải mở modal. Lấy từ quan.so_dien_thoai (đã có sẵn trong dữ
+     liệu giả — xem mock/quan.js), chỉ hiện khi có giá trị.
+
    Vì sao thẻ không hiện dinh dưỡng: hai nội dung đó chỉ xuất hiện trong
    modal chi tiết (§5). Nhờ vậy thẻ ngoài KHÔNG cần dòng miễn trừ trách
    nhiệm R-31 (§5.3) — R-31 kích hoạt ở modal, không kích hoạt ở thẻ.
@@ -42,6 +47,9 @@ export default function TheMon({ mon, onChon }) {
         </div>
 
         <p className="the-mon__gio">{quan?.khoang_gio_hoat_dong}</p>
+        {quan?.so_dien_thoai && (
+          <p className="the-mon__dien-thoai">📞 {quan.so_dien_thoai}</p>
+        )}
       </div>
     </button>
   )

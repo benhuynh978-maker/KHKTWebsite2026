@@ -20,19 +20,57 @@
 
    • Nút "Đã ăn món này" chỉ nằm trong modal (§6.1). Không có bước huỷ/
      hoàn tác ngay tại trang (§6.2) — muốn xoá phải qua trang Lịch sử.
-   ========================================================================= */
+
+   ⚠ Thêm 29/7 — prop `chiXem`: Dashboard giờ cũng bấm thẻ món mở được
+     modal này (yêu cầu riêng), nhưng Dashboard §1.2 CẤM ghi dữ liệu ("mọi
+     thao tác chọn/tick bữa luôn DẪN SANG trang chuyên biệt"). `chiXem`
+     thay nút "Đã ăn món này" bằng một liên kết dẫn sang đúng trang có
+     thao tác đó — vẫn MỘT modal duy nhất, không tạo bản sao.
+
+   ⚠ Thêm 29/7 — bình luận & đánh giá 5 sao (yêu cầu riêng, xem thêm
+     mock/binhLuan.js): dòng "Xem bình luận" đứng ngay TRƯỚC nút "Đã ăn
+     món này", chỉ hiện số lượng — nội dung từng bình luận CHỈ hiện ở bảng
+     nổi riêng (BangBinhLuan.jsx) khi bấm vào. Bảng nổi đó render NGOÀI
+     .modal-nen của chính modal này (xem JSX bên dưới) — nếu lồng bên
+     trong, bấm ra ngoài bảng bình luận sẽ nổi bọt (bubble) lên onClick
+     đóng modal chi tiết luôn, đóng nhầm cả hai lớp cùng lúc.
+
+     Ô sao cạnh giá món (DanhGiaSao.jsx) CHỈ ĐỌC — hiện điểm trung bình.
+     Ô TỰ CHỌN sao để gửi (ChonSao.jsx) nằm trong BangBinhLuan.jsx, đi
+     cùng khung viết bình luận — giống cách Shopee/Tiki/Google Play đặt
+     "Viết đánh giá". ModalMon chỉ ĐỌC LẠI kết quả khi đóng bảng bình luận
+     (đóng-thì-nạp-lại, xem dongBangBinhLuan bên dưới), không tự gửi sao. */
 
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { tien, khoangCach } from '../lib/dinhDang.js'
-import { ghiNhanDaAnTuChon, tenNhomDiUng } from '../data/api.js'
+import { ghiNhanDaAnTuChon, tenNhomDiUng, layBinhLuan, layDanhGia } from '../data/api.js'
 import MienTru from './MienTru.jsx'
+import DanhGiaSao from './DanhGiaSao.jsx'
+import BangBinhLuan from './BangBinhLuan.jsx'
 
-export default function ModalMon({ mon, onDong, onDaGhiNhan }) {
+export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
   const [trangThai, datTrangThai] = useState('xem') // xem | da_ghi | bi_chan
   const [thongDiepChan, datThongDiepChan] = useState('')
+  const [hienBinhLuan, datHienBinhLuan] = useState(false)
+
+  // Khởi tạo lười theo mon.id — modal luôn mount MỚI cho mỗi món (đóng
+  // rồi mở lại từ thẻ khác, không đổi mon ngay trong lúc đang mở), nên
+  // không cần đồng bộ lại khi prop mon đổi giữa chừng.
+  const [soBinhLuan, datSoBinhLuan] = useState(() => (mon ? layBinhLuan(mon.id).length : 0))
+  const [danhGia, datDanhGia] = useState(() => (mon ? layDanhGia(mon.id) : null))
 
   if (!mon) return null
   const { quan } = mon
+
+  // Bảng bình luận vừa đóng là lúc duy nhất số bình luận/sao có thể đã
+  // đổi (người dùng gửi bên trong đó) — nạp lại một lần ở đây thay vì dò
+  // đồng bộ theo từng hành động, đơn giản hơn mà vẫn đúng.
+  const dongBangBinhLuan = () => {
+    datHienBinhLuan(false)
+    datSoBinhLuan(layBinhLuan(mon.id).length)
+    datDanhGia(layDanhGia(mon.id))
+  }
 
   const xacNhanDaAn = () => {
     const kq = ghiNhanDaAnTuChon(mon)
@@ -46,72 +84,106 @@ export default function ModalMon({ mon, onDong, onDaGhiNhan }) {
   }
 
   return (
-    <div className="modal-nen" onClick={onDong}>
-      <div className="modal-mon" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <button className="modal-mon__dong" onClick={onDong} type="button" aria-label="Đóng">
-          ✕
-        </button>
+    <>
+      <div className="modal-nen" onClick={onDong}>
+        <div className="modal-mon" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+          <button className="modal-mon__dong" onClick={onDong} type="button" aria-label="Đóng">
+            ✕
+          </button>
 
-        <div className="modal-mon__anh" aria-hidden="true">
-          {mon.anh_url
-            ? <img src={mon.anh_url} alt="" />
-            : <span>Ảnh món</span>}
-        </div>
-
-        <div className="modal-mon__than">
-          <div>
-            <h3 className="modal-mon__ten">{mon.ten_mon}</h3>
-            <p className="chu-nhat">
-              {quan?.ten_quan} · {khoangCach(quan?.khoang_cach_m)}
-            </p>
+          <div className="modal-mon__anh" aria-hidden="true">
+            {mon.anh_url
+              ? <img src={mon.anh_url} alt="" />
+              : <span>Ảnh món</span>}
           </div>
 
-          <p className="modal-mon__gia">{tien(mon.gia)}</p>
-
-          {/* Dinh dưỡng chi tiết — mỗi số kèm biên sai số riêng (R-04). */}
-          <dl className="modal-mon__dinh-duong">
+          <div className="modal-mon__than">
             <div>
-              <dt>Năng lượng</dt>
-              <dd>{mon.kcal} kcal <span className="chu-be chu-nhat">(±{mon.sai_so_kcal})</span></dd>
+              <h3 className="modal-mon__ten">{mon.ten_mon}</h3>
+              <p className="chu-nhat">
+                {quan?.ten_quan} · {khoangCach(quan?.khoang_cach_m)}
+              </p>
             </div>
-            <div>
-              <dt>Đạm</dt>
-              <dd>{mon.dam_g} g <span className="chu-be chu-nhat">(±{mon.sai_so_dam})</span></dd>
-            </div>
-            <div>
-              <dt>Canxi</dt>
-              <dd>{mon.canxi_mg} mg <span className="chu-be chu-nhat">(±{mon.sai_so_canxi})</span></dd>
-            </div>
-            <div>
-              <dt>Sắt</dt>
-              <dd>{mon.sat_mg} mg <span className="chu-be chu-nhat">(±{mon.sai_so_sat})</span></dd>
-            </div>
-          </dl>
 
-          {mon.thanh_phan_di_ung.length > 0 && (
-            <p className="modal-mon__thanh-phan">
-              <span className="chu-nhat">Thành phần có thể gây dị ứng: </span>
-              {mon.thanh_phan_di_ung.map(tenNhomDiUng).join(', ')}
-            </p>
-          )}
+            <div className="modal-mon__gia-hang">
+              <p className="modal-mon__gia">{tien(mon.gia)}</p>
+              <DanhGiaSao
+                trungBinh={danhGia?.trung_binh ?? null}
+                soLuot={danhGia?.so_luot ?? 0}
+              />
+            </div>
 
-          <MienTru gonGang />
+            {/* Dinh dưỡng chi tiết — mỗi số kèm biên sai số riêng (R-04). */}
+            <dl className="modal-mon__dinh-duong">
+              <div>
+                <dt>Năng lượng</dt>
+                <dd>{mon.kcal} kcal <span className="chu-be chu-nhat">(±{mon.sai_so_kcal})</span></dd>
+              </div>
+              <div>
+                <dt>Đạm</dt>
+                <dd>{mon.dam_g} g <span className="chu-be chu-nhat">(±{mon.sai_so_dam})</span></dd>
+              </div>
+              <div>
+                <dt>Glucid</dt>
+                <dd>{mon.glucid_g} g <span className="chu-be chu-nhat">(±{mon.sai_so_glucid})</span></dd>
+              </div>
+              <div>
+                <dt>Lipid</dt>
+                <dd>{mon.lipid_g} g <span className="chu-be chu-nhat">(±{mon.sai_so_lipid})</span></dd>
+              </div>
+              <div>
+                <dt>Canxi</dt>
+                <dd>{mon.canxi_mg} mg <span className="chu-be chu-nhat">(±{mon.sai_so_canxi})</span></dd>
+              </div>
+              <div>
+                <dt>Sắt</dt>
+                <dd>{mon.sat_mg} mg <span className="chu-be chu-nhat">(±{mon.sai_so_sat})</span></dd>
+              </div>
+            </dl>
 
-          <div className="modal-mon__hanh-dong">
-            {trangThai === 'xem' && (
-              <button className="nut nut--chinh nut--rong" onClick={xacNhanDaAn} type="button">
-                Đã ăn món này
-              </button>
+            {mon.thanh_phan_di_ung.length > 0 && (
+              <p className="modal-mon__thanh-phan">
+                <span className="chu-nhat">Thành phần có thể gây dị ứng: </span>
+                {mon.thanh_phan_di_ung.map(tenNhomDiUng).join(', ')}
+              </p>
             )}
-            {trangThai === 'da_ghi' && (
-              <p className="modal-mon__da-ghi">✓ Đã ghi nhận. Cảm ơn bạn!</p>
-            )}
-            {trangThai === 'bi_chan' && (
-              <p className="modal-mon__bi-chan">{thongDiepChan}</p>
-            )}
+
+            <MienTru gonGang />
+
+            <button
+              type="button"
+              className="mon-binh-luan"
+              onClick={() => datHienBinhLuan(true)}
+            >
+              💬 <strong>{soBinhLuan}</strong> bình luận
+              <span className="mon-binh-luan__xem">· Xem bình luận</span>
+            </button>
+
+            <div className="modal-mon__hanh-dong">
+              {trangThai === 'xem' && chiXem && (
+                <Link className="nut nut--chinh nut--rong" to="/an-gi-hom-nay" onClick={onDong}>
+                  Xem & xác nhận ở trang Ăn gì hôm nay
+                </Link>
+              )}
+              {trangThai === 'xem' && !chiXem && (
+                <button className="nut nut--chinh nut--rong" onClick={xacNhanDaAn} type="button">
+                  Đã ăn món này
+                </button>
+              )}
+              {trangThai === 'da_ghi' && (
+                <p className="modal-mon__da-ghi">✓ Đã ghi nhận. Cảm ơn bạn!</p>
+              )}
+              {trangThai === 'bi_chan' && (
+                <p className="modal-mon__bi-chan">{thongDiepChan}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {hienBinhLuan && (
+        <BangBinhLuan mon={mon} onDong={dongBangBinhLuan} />
+      )}
+    </>
   )
 }

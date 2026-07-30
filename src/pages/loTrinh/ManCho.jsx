@@ -26,10 +26,18 @@ const TEN_TANG = {
   5: 'Nhất quán ghi chú',
 }
 
-export default function ManCho({ form, onKhaThi, onBatKha, onQuayLai, onHuy }) {
+export default function ManCho({ form, onKhaThi, onBatKha, onQuayLai, onHuy, ketQuaEp }) {
   const [ketQua, datKetQua] = useState(null) // null = đang chạy
 
   useEffect(() => {
+    // DEMO 29/7 — Bảng thử nghiệm Lộ trình ép sẵn một kết quả (khả thi
+    // hoặc bất khả ở tầng cụ thể) để xem trước giao diện, bỏ qua tiền
+    // kiểm thật. Vẫn giữ độ trễ giả lập cho giống luồng thật.
+    if (ketQuaEp) {
+      const hen = setTimeout(() => datKetQua({ ...ketQuaEp, canhBaoGhiChu: false, formDayDu: form }), 500)
+      return () => clearTimeout(hen)
+    }
+
     const coBenhLy = coDauHieuBenhLy(form.ghi_chu)
     const rangBuocGhiChu = coBenhLy ? {} : trichRangBuocGhiChu(form.ghi_chu)
     // Gắn ràng buộc đã trích vào chính đối tượng form và mang theo tới tận

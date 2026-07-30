@@ -18,9 +18,16 @@
       Nhãn truyền vào phải theo mẫu "đạm hôm nay", không phải "còn thiếu đạm".
 
    4. Làm tròn số nguyên khi HIỂN THỊ; số truyền vào giữ nguyên độ chính xác.
+
+   5. `moTa` (tuỳ chọn) — dấu (i) GIẢI THÍCH RIÊNG cho từng vòng, thay cho
+      một dấu (i) DUY NHẤT ở tiêu đề Khối 1 gộp chung 4 vòng (bỏ 29/7 vì
+      học sinh không phân biệt được lời giải thích đó đang nói về vòng
+      nào). Mỗi vòng tự giải thích đúng phạm vi của chính nó.
    ========================================================================= */
 
-export default function VongTron({ phanTram, nhan, chinh = false }) {
+import ThongTinGoiY from './ThongTinGoiY.jsx'
+
+export default function VongTron({ phanTram, nhan, chinh = false, moTa, moTaLen = false }) {
   const kichThuoc = chinh ? 132 : 104
   const doDay = chinh ? 12 : 10
   const banKinh = (kichThuoc - doDay) / 2
@@ -55,7 +62,10 @@ export default function VongTron({ phanTram, nhan, chinh = false }) {
           {soHienThi}%
         </text>
       </svg>
-      <span className="vong-tron__nhan">{nhan}</span>
+      <span className="vong-tron__nhan-hang">
+        <span className="vong-tron__nhan">{nhan}</span>
+        {moTa && <ThongTinGoiY noiDung={moTa} moLen={moTaLen} />}
+      </span>
     </div>
   )
 }

@@ -30,9 +30,10 @@ import ThongDiepAnToan from '../components/ThongDiepAnToan.jsx'
 import NhanTrangThai from '../components/NhanTrangThai.jsx'
 import TrangThaiRong from '../components/TrangThaiRong.jsx'
 import BangThuNghiem from '../components/BangThuNghiem.jsx'
+import ModalMon from '../components/ModalMon.jsx'
 
 import {
-  layLoTrinhDangChay, layMonHomNay, layTomTatDinhDuongHomNay,
+  layLoTrinhDangChay, layMonHomNay, layHoSo, layTomTatDinhDuongHomNay,
   layDeXuatNoiBat, layQuanGoiY, layChiPhi7NgayRutGon, goiYNhanh,
 } from '../data/api.js'
 import { tien, khoangCach, TEN_BUOI } from '../lib/dinhDang.js'
@@ -40,6 +41,11 @@ import { tien, khoangCach, TEN_BUOI } from '../lib/dinhDang.js'
 export default function Dashboard() {
   // Chỉ dùng để vẽ lại khi đổi kịch bản ở bảng thử nghiệm — sẽ gỡ cùng nó.
   const [lanVe, datLanVe] = useState(0)
+
+  // DEMO 29/7 — MỘT modal dùng chung cho MỌI thẻ món trên Dashboard (Khối
+  // 1/4/5), giống hệt cơ chế "bấm thẻ món → bảng nổi chi tiết" ở trang
+  // "Ăn gì hôm nay" (ModalMon.jsx) — không định nghĩa lại.
+  const [monDangXem, datMonDangXem] = useState(null)
 
   const loTrinh = layLoTrinhDangChay()
 
@@ -51,40 +57,53 @@ export default function Dashboard() {
           Khối DUY NHẤT có điều kiện hiện/ẩn toàn phần (§3):
           trống hoàn toàn nếu chưa có lộ trình — không hiện 0%,
           không có gì thay thế vào chỗ đó. */}
-      {loTrinh && <KhoiLoTrinh />}
+      {loTrinh && <KhoiLoTrinh onChonMon={datMonDangXem} />}
 
       {/* ---- KHỐI 2 — PHÂN TÍCH (luôn hiện) ---------------------------- */}
       <KhoiPhanTich />
 
       {/* ---- KHỐI 4 — MÓN ĂN ĐỀ XUẤT ----------------------------------- */}
-      <KhoiMonDeXuat />
+      <KhoiMonDeXuat onChonMon={datMonDangXem} />
 
       {/* ---- KHỐI 3 — QUÁN ĂN GỢI Ý ------------------------------------ */}
       <KhoiQuanGoiY />
 
       {/* ---- KHỐI 5 — GỢI Ý NHANH -------------------------------------- */}
-      <KhoiGoiYNhanh />
+      <KhoiGoiYNhanh onChonMon={datMonDangXem} />
 
       {/* R-31 — trang hiển thị dữ liệu dinh dưỡng cá nhân (§1.3) */}
       <MienTru />
 
       {/* ---- KHỐI 6 — THÔNG ĐIỆP AN TOÀN (luôn ở cuối) ----------------- */}
       <ThongDiepAnToan />
+
+      {monDangXem && (
+        <ModalMon mon={monDangXem} onDong={() => datMonDangXem(null)} chiXem />
+      )}
     </>
   )
 }
 
 /* =========================================================================
    KHỐI 1 — LỘ TRÌNH
+   -------------------------------------------------------------------------
+   Bố cục viết lại 29/7 theo yêu cầu riêng: "Món hôm nay" giờ là một THẺ
+   MÓN giống hệt các thẻ khác trong app (TheMon.jsx — cùng bấm vào để mở
+   bảng nổi chi tiết), có chữ BUỔI rõ ràng ở đầu, kèm 2 vòng tròn %năng
+   lượng/%đạm CỦA RIÊNG MÓN NÀY so với mốc cả ngày (không phải số gram/kcal
+   thô — R-08/§3.2 vẫn áp dụng y hệt, chỉ đổi CÁCH gói số liệu). Vòng tròn
+   tổng hợp CẢ NGÀY (HaiVongTron, đã có từ trước) vẫn giữ nguyên bên dưới —
+   hai thứ khác phạm vi (một món / cả ngày), không thay thế nhau.
    ========================================================================= */
 
-function KhoiLoTrinh() {
+function KhoiLoTrinh({ onChonMon }) {
   return (
     <Khoi
       tieuDe="Lộ trình hôm nay"
       hanhDong={<Link className="lien-ket" to="/lo-trinh">Xem thêm</Link>}
+      nguonTrang="Trang Lộ trình"
     >
-      <MonHomNay />
+      <MonHomNay onChonMon={onChonMon} />
       <HaiVongTron />
     </Khoi>
   )
@@ -92,19 +111,18 @@ function KhoiLoTrinh() {
 
 /* ---- Khối 1, Phần A — Món hôm nay (§3.1) ----------------------------- */
 
-function MonHomNay() {
+function MonHomNay({ onChonMon }) {
   const kq = layMonHomNay()
 
   // Đã ghi nhận bữa hôm nay → hiện TRẠNG THÁI XÁC NHẬN, không phải gợi ý nữa.
   if (kq.tinh_huong === 'da_ghi_nhan') {
     return (
-      <div className="mon-hom-nay mon-hom-nay--da-ghi">
-        <div className="day">
-          <p className="mon-hom-nay__ten">{kq.mon?.ten_mon}</p>
-          <p className="chu-nho chu-nhat">{kq.mon?.quan?.ten_quan}</p>
-        </div>
-        <NhanTrangThai loai="trong_khung" />
-      </div>
+      <TheMonBuoiHomNay
+        mon={kq.mon}
+        buoi={kq.buoi}
+        nhanTrangThai="trong_khung"
+        onChonMon={onChonMon}
+      />
     )
   }
 
@@ -124,7 +142,7 @@ function MonHomNay() {
     )
   }
 
-  // Chưa ghi nhận → món hạng 1 khớp khung + giá + icon địa chỉ quán.
+  // Chưa ghi nhận → món hạng 1 khớp khung.
   const { mon, buoi } = kq
   if (!mon) {
     return (
@@ -134,35 +152,53 @@ function MonHomNay() {
     )
   }
 
-  const banDo = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    `${mon.quan.ten_quan} ${mon.quan.dia_chi}`
-  )}`
+  return <TheMonBuoiHomNay mon={mon} buoi={buoi} onChonMon={onChonMon} />
+}
+
+/** Thẻ món của buổi hôm nay — thẻ CHUẨN (TheMon) + nhãn buổi + 2 vòng tròn
+ *  %năng lượng/%đạm của RIÊNG món này so với mốc cả ngày (kcal_muc_tieu/
+ *  dam_muc_tieu ở Hồ sơ). "chế demo trước" theo đúng yêu cầu — số hồ sơ
+ *  hiện có sẵn, không cần bịa thêm. */
+function TheMonBuoiHomNay({ mon, buoi, nhanTrangThai, onChonMon }) {
+  const hoSo = layHoSo()
+  const phanTramNangLuong = hoSo.kcal_muc_tieu ? (mon.kcal / hoSo.kcal_muc_tieu) * 100 : 0
+  const phanTramDam = hoSo.dam_muc_tieu ? (mon.dam_g / hoSo.dam_muc_tieu) * 100 : 0
 
   return (
-    <div className="mon-hom-nay">
-      <div className="day">
-        <p className="khoi__phu">Bữa {TEN_BUOI[buoi]?.toLowerCase()}</p>
-        <p className="mon-hom-nay__ten">{mon.ten_mon}</p>
-        <p className="chu-nho chu-nhat">
-          {mon.quan.ten_quan} · {khoangCach(mon.quan.khoang_cach_m)}
-        </p>
+    <div className="the-mon-buoi">
+      <div className="the-mon-buoi__dau">
+        <span className="the-mon-buoi__nhan-buoi">Bữa {TEN_BUOI[buoi]?.toLowerCase()}</span>
+        {nhanTrangThai && <NhanTrangThai loai={nhanTrangThai} />}
       </div>
 
-      <div className="mon-hom-nay__phai">
-        <span className="mon-hom-nay__gia">{tien(mon.gia)}</span>
-        {/* Icon địa chỉ quán: bấm vào mở Google Maps (§3.1).
-            ⚠ Bảng `quan` bản nháp (§8.2 tài liệu "Ăn gì hôm nay") chỉ có
-            dia_chi, chưa có lat/lng — nên đây là liên kết tìm kiếm theo
-            địa chỉ, chưa phải deep link tới toạ độ GPS như §3.1 mô tả. */}
-        <a
-          className="mon-hom-nay__ban-do"
-          href={banDo}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`Mở bản đồ tới ${mon.quan.ten_quan}`}
-        >
-          ⌖
-        </a>
+      <TheMon mon={mon} onChon={onChonMon} />
+
+      <div className="hai-vong hai-vong--nho">
+        <div className="hai-vong__hang">
+          <VongTron
+            chinh
+            phanTram={phanTramDam}
+            nhan="đạm món này / mốc ngày"
+            moTa={(
+              <>
+                Riêng món ở bữa {TEN_BUOI[buoi]?.toLowerCase()} này có bao nhiêu %
+                đạm so với mốc đạm CẢ NGÀY trong hồ sơ của bạn — chưa cộng các bữa
+                khác.
+              </>
+            )}
+          />
+          <VongTron
+            phanTram={phanTramNangLuong}
+            nhan="năng lượng món này / mốc ngày"
+            moTa={(
+              <>
+                Riêng món ở bữa {TEN_BUOI[buoi]?.toLowerCase()} này có bao nhiêu %
+                năng lượng so với mốc năng lượng CẢ NGÀY trong hồ sơ của bạn — chưa
+                cộng các bữa khác.
+              </>
+            )}
+          />
+        </div>
       </div>
     </div>
   )
@@ -182,10 +218,33 @@ function HaiVongTron() {
             trưa + tối, mốc này chỉ là MỘT PHẦN nhu cầu cả ngày. Không ghi
             trống "đạm hôm nay" — tránh học sinh hiểu lầm đã đủ cả ngày.
             (§3.2, khung "Lưu ý nhãn hiển thị") */}
-        <VongTron chinh phanTram={tt.phan_tram_dam} nhan="đạm hôm nay (theo lộ trình)" />
+        <VongTron
+          chinh
+          phanTram={tt.phan_tram_dam}
+          nhan="đạm hôm nay (theo lộ trình)"
+          moTaLen
+          moTa={(
+            <>
+              Cộng dồn đạm của MỌI bữa đã ghi nhận hôm nay theo lộ trình, so với
+              mốc đạm cả ngày. Lộ trình hiện chỉ quản lý bữa trưa và tối, nên đây
+              là một phần nhu cầu cả ngày, chưa phải toàn bộ.
+            </>
+          )}
+        />
 
         {/* Nhãn dùng chữ "năng lượng", KHÔNG dùng chữ "calo" (§3.2). */}
-        <VongTron phanTram={tt.phan_tram_nang_luong} nhan="năng lượng (theo lộ trình)" />
+        <VongTron
+          phanTram={tt.phan_tram_nang_luong}
+          nhan="năng lượng (theo lộ trình)"
+          moTaLen
+          moTa={(
+            <>
+              Cộng dồn năng lượng của MỌI bữa đã ghi nhận hôm nay theo lộ trình, so
+              với mốc năng lượng cả ngày. Lộ trình hiện chỉ quản lý bữa trưa và
+              tối, nên đây là một phần nhu cầu cả ngày, chưa phải toàn bộ.
+            </>
+          )}
+        />
       </div>
 
       {/* Chú thích bắt buộc khi có bữa ăn ngoài lộ trình (§3.2, khung
@@ -217,13 +276,16 @@ function KhoiPhanTich() {
 
   return (
     <Khoi
-      tieuDe="Chi phí 7 ngày qua"
+      tieuDe="Chi tiêu 7 ngày qua"
       phu="Tổng mỗi ngày · nghìn đồng"
       hanhDong={<Link className="lien-ket" to="/phan-tich">Xem chi tiết</Link>}
+      nguonTrang="Trang Phân tích"
     >
       <BieuDoCot
         duLieu={duLieu.map((d) => ({ nhan: d.nhan, giaTri: Math.round(d.chiPhi / 1000) }))}
         donVi="k"
+        mau="var(--mau-bd-chi-tieu)"
+        nhanChiSo="Chi tiêu 7 ngày qua"
       />
     </Khoi>
   )
@@ -237,7 +299,7 @@ function KhoiPhanTich() {
    luôn hiện, mang tính khám phá chung.
    ========================================================================= */
 
-function KhoiMonDeXuat() {
+function KhoiMonDeXuat({ onChonMon }) {
   const ds = layDeXuatNoiBat(5)
 
   return (
@@ -245,13 +307,14 @@ function KhoiMonDeXuat() {
       tieuDe="Món ăn đề xuất"
       phu="Được chọn nhiều nhất 7 ngày qua"
       hanhDong={<Link className="lien-ket" to="/an-gi-hom-nay">Xem tất cả</Link>}
+      nguonTrang="Trang Ăn gì hôm nay"
     >
       {ds.length === 0 ? (
         <TrangThaiRong>Chưa có dữ liệu 7 ngày qua.</TrangThaiRong>
       ) : (
         // Dải cuộn ngang, không tự xuống hàng ("Ăn gì hôm nay" §2.1)
         <div className="dai-ngang">
-          {ds.map((m) => <TheMon key={m.id} mon={m} />)}
+          {ds.map((m) => <TheMon key={m.id} mon={m} onChon={onChonMon} />)}
         </div>
       )}
     </Khoi>
@@ -270,6 +333,7 @@ function KhoiQuanGoiY() {
     <Khoi
       tieuDe="Quán ăn gợi ý"
       hanhDong={<Link className="lien-ket" to="/quan-an-gan-day">Xem tất cả</Link>}
+      nguonTrang="Trang Quán ăn gần đây"
     >
       <ul className="ds-quan">
         {ds.map((q) => (
@@ -309,7 +373,7 @@ const NUT_GOI_Y = [
   { ma: 'gan_nhat',  nhan: 'Gần nhất' },
 ]
 
-function KhoiGoiYNhanh() {
+function KhoiGoiYNhanh({ onChonMon }) {
   const [tinNhan, datTinNhan] = useState([])
   const [dangGo, datDangGo] = useState('')
 
@@ -367,12 +431,12 @@ function KhoiGoiYNhanh() {
                   <>
                     <p className="chu-nho chu-nhat">Gợi ý cho bạn:</p>
                     <div className="dai-ngang dai-ngang--tren">
-                      {t.ketQua.map((m) => <TheMon key={m.id} mon={m} />)}
+                      {t.ketQua.map((m) => <TheMon key={m.id} mon={m} onChon={onChonMon} />)}
                     </div>
                     {/* §1.2 — Dashboard KHÔNG ghi dữ liệu, không có nút
                         "chọn món"/"tick bữa" ở đây. */}
                     <p className="chu-be chu-nhat goi-y__dan-loi">
-                      Bấm vào món để xem chi tiết và xác nhận ở trang Ăn gì hôm nay.
+                      Bấm vào món để xem chi tiết.
                     </p>
                   </>
                 )}

@@ -218,6 +218,7 @@ export const KICH_BAN = {
           id: 'gn-demo-01', lo_trinh_khung_id: k.id,
           trang_thai: 'da_an_trong_khung', mon_id: 'm06', mon_tu_ghi: null,
           gia_tai_thoi_diem: 32000, kcal_tai_thoi_diem: 720, dam_tai_thoi_diem: 33,
+          glucid_tai_thoi_diem: 80, lipid_tai_thoi_diem: 28,
           canxi_tai_thoi_diem: 45, sat_tai_thoi_diem: 2.4, so_lan_bam_mon_khac: 1,
           thoi_gian_ghi_nhan: new Date().toISOString(),
         })
@@ -250,6 +251,7 @@ export const KICH_BAN = {
           id: 'gn-demo-03', lo_trinh_khung_id: k.id,
           trang_thai: 'da_an_trong_khung', mon_id: 'm06', mon_tu_ghi: null,
           gia_tai_thoi_diem: 32000, kcal_tai_thoi_diem: 720, dam_tai_thoi_diem: 33,
+          glucid_tai_thoi_diem: 80, lipid_tai_thoi_diem: 28,
           canxi_tai_thoi_diem: 45, sat_tai_thoi_diem: 2.4, so_lan_bam_mon_khac: 0,
           thoi_gian_ghi_nhan: new Date().toISOString(),
         })
@@ -257,7 +259,8 @@ export const KICH_BAN = {
       TRANG_THAI.ghi_nhan_goi_y_demo = [{
         id: 'gy-demo-01', ma_hoc_sinh: HOC_SINH_HIEN_TAI.ma_6_so, mon_id: 'm07',
         nguon: 'goi_y_nhanh', gia_tai_thoi_diem: 20000, kcal_tai_thoi_diem: 420,
-        dam_tai_thoi_diem: 17, canxi_tai_thoi_diem: 65, sat_tai_thoi_diem: 2.3,
+        dam_tai_thoi_diem: 17, glucid_tai_thoi_diem: 52, lipid_tai_thoi_diem: 15,
+        canxi_tai_thoi_diem: 65, sat_tai_thoi_diem: 2.3,
         thoi_gian_ghi_nhan: new Date().toISOString(),
       }]
     },

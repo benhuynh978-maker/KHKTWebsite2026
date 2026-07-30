@@ -12,6 +12,16 @@
 
    Đổi tên 29/7: nhãn "Trong khung" → "Trong lộ trình", "Ngoài kế hoạch" →
    "Ngoài lộ trình" (chỉ đổi chữ hiển thị — xem NhanTrangThai.jsx).
+
+   Sửa 29/7 (yêu cầu riêng, không thuộc tài liệu kế hoạch gốc):
+     • Bỏ hiển thị "buổi" trên mỗi dòng — đã có giờ ăn thật thay thế, buổi
+       suy đoán (Khu vực 3) thành thừa. Trường buoi/buoiSuyDoan đã bỏ luôn
+       khỏi layLichSuHopNhat() (xem api.js), không chỉ ẩn ở đây.
+     • Mặc định "Khoảng thời gian" đổi từ Tất cả → Hôm nay, để trang mở
+       lên gọn, không choáng bởi toàn bộ lịch sử ngay từ đầu.
+     • Tìm kiếm khớp thêm tên quán (trước chỉ khớp tên món).
+     • Thêm bộ lọc "Loại hình" (Căn tin / Quán ăn ngoài) — cùng vốn giá
+       trị với bộ lọc cùng tên ở trang "Quán ăn gần đây".
    ========================================================================= */
 
 import { useMemo, useState } from 'react'
@@ -20,7 +30,7 @@ import MienTru from '../components/MienTru.jsx'
 import NhanTrangThai from '../components/NhanTrangThai.jsx'
 import TrangThaiRong from '../components/TrangThaiRong.jsx'
 import { layLichSuHopNhat, xoaDongLichSu } from '../data/api.js'
-import { tien, boDauChu, TEN_BUOI } from '../lib/dinhDang.js'
+import { tien, boDauChu } from '../lib/dinhDang.js'
 
 function nhanNgay(iso) {
   const d = new Date(iso)
@@ -41,8 +51,9 @@ function gio(iso) {
 export default function LichSu() {
   const [phienBan, datPhienBan] = useState(0)
   const [tuKhoa, datTuKhoa] = useState('')
-  const [locKhoangThoiGian, datLocKhoangThoiGian] = useState('tat_ca')
+  const [locKhoangThoiGian, datLocKhoangThoiGian] = useState('hom_nay')
   const [locNhan, datLocNhan] = useState('tat_ca')
+  const [locLoaiHinh, datLocLoaiHinh] = useState('tat_ca')
   const [giaToiThieu, datGiaToiThieu] = useState('')
   const [giaToiDa, datGiaToiDa] = useState('')
   const [dongDangXoa, datDongDangXoa] = useState(null)
@@ -56,15 +67,24 @@ export default function LichSu() {
     const dauHomNay = new Date(); dauHomNay.setHours(0, 0, 0, 0)
 
     return toanBo.filter((d) => {
-      // §3.1 — dòng không có tên món không khớp từ khoá nào (đúng bản
-      // chất, không phải lỗi).
-      if (tk && !(d.ten_mon && boDauChu(d.ten_mon).includes(tk))) return false
+      // §3.1 — dòng không có tên món/tên quán không khớp từ khoá nào
+      // (đúng bản chất, không phải lỗi). Sửa 29/7: khớp thêm tên quán,
+      // trước chỉ khớp tên món.
+      if (tk) {
+        const khopMon = d.ten_mon && boDauChu(d.ten_mon).includes(tk)
+        const khopQuan = d.ten_quan && boDauChu(d.ten_quan).includes(tk)
+        if (!khopMon && !khopQuan) return false
+      }
 
       if (locKhoangThoiGian === 'hom_nay' && new Date(d.thoi_gian_ghi_nhan) < dauHomNay) return false
       if (locKhoangThoiGian === '7_ngay' && new Date(d.thoi_gian_ghi_nhan).getTime() < bayNgayTruoc) return false
       if (locKhoangThoiGian === '30_ngay' && new Date(d.thoi_gian_ghi_nhan).getTime() < baMuoiNgayTruoc) return false
 
       if (locNhan !== 'tat_ca' && d.nhan !== locNhan) return false
+
+      // Dòng không có quán (ngoài lộ trình) không khớp loại hình nào cụ
+      // thể nào — cùng nguyên tắc với tìm kiếm/giá (§3.2).
+      if (locLoaiHinh !== 'tat_ca' && d.loai_hinh !== locLoaiHinh) return false
 
       // Dòng không có giá (ngoài lộ trình, không gõ tên) không khớp bộ
       // lọc giá nào — cùng nguyên tắc với tìm kiếm (§3.2).
@@ -73,7 +93,7 @@ export default function LichSu() {
 
       return true
     })
-  }, [toanBo, tuKhoa, locKhoangThoiGian, locNhan, giaToiThieu, giaToiDa])
+  }, [toanBo, tuKhoa, locKhoangThoiGian, locNhan, locLoaiHinh, giaToiThieu, giaToiDa])
 
   const theoNgay = useMemo(() => {
     const nhom = new Map()
@@ -97,7 +117,7 @@ export default function LichSu() {
         <input
           className="o-tim-kiem"
           type="search"
-          placeholder="Tìm theo tên món..."
+          placeholder="Tìm theo tên món hoặc tên quán..."
           value={tuKhoa}
           onChange={(e) => datTuKhoa(e.target.value)}
         />
@@ -122,6 +142,15 @@ export default function LichSu() {
                 <option value="ngoai_ke_hoach">Ngoài lộ trình</option>
                 <option value="goi_y_nhanh">Gợi ý nhanh</option>
                 <option value="tu_chon">Tự chọn</option>
+              </select>
+            </label>
+
+            <label className="thanh-loc__muc">
+              <span className="chu-nho chu-nhat">Loại hình</span>
+              <select value={locLoaiHinh} onChange={(e) => datLocLoaiHinh(e.target.value)}>
+                <option value="tat_ca">Tất cả</option>
+                <option value="cang_tin">Căng tin</option>
+                <option value="quan_ngoai">Quán ngoài</option>
               </select>
             </label>
 
@@ -163,14 +192,7 @@ export default function LichSu() {
                     <p className="dong-lich-su__ten">
                       {d.ten_mon ?? <span className="chu-nhat">(không ghi tên món)</span>}
                     </p>
-                    <p className="chu-nho chu-nhat">
-                      {d.ten_quan ?? '—'}
-                      {d.buoi && (
-                        <>
-                          {' · '}{TEN_BUOI[d.buoi]}{d.buoiSuyDoan ? ' (ước tính)' : ''}
-                        </>
-                      )}
-                    </p>
+                    <p className="chu-nho chu-nhat">{d.ten_quan ?? '—'}</p>
                     {/* §4.1 — số dinh dưỡng CÓ hiển thị ở đây (khác Dashboard,
                         nơi số cộng dồn bị giấu). Đây là con số của MỘT bữa đã
                         ăn xong, đã chốt — rủi ro thấp hơn một tổng đang "chạy". */}

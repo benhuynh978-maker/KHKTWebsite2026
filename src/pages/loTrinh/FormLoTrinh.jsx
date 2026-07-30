@@ -36,12 +36,18 @@ const BUOI_TUY_CHON = [
 export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
   const hoSo = layHoSo()
 
-  const [nganSachTuan, datNganSachTuan] = useState(350000)
+  // DEMO 29/7 — ngân sách mặc định nâng 350k→500k và cờ "bỏ qua sàn" bật
+  // SẴN, để luồng mặc định (không sửa gì, chỉ bấm Tạo lộ trình) luôn đi
+  // hết 4 giai đoạn thành công. Xem lib/sinhLoTrinh.js ghi chú #2b: với
+  // hồ sơ demo (kcal_muc_tieu 2500), sàn kcal_min bữa trưa (744) CAO HƠN
+  // món căng-tin đắt calo nhất hiện có (720) — nếu không bật cờ này, MỌI
+  // lộ trình mới đều bị chặn ở Giai đoạn 2 bất kể ngân sách.
+  const [nganSachTuan, datNganSachTuan] = useState(500000)
   const [mucDich, datMucDich] = useState('du_chat_trong_ngan_sach')
   const [buoiApDung, datBuoiApDung] = useState(['trua', 'toi'])
   const [ghiChu, datGhiChu] = useState('')
   const [daTickDongY, datDaTickDongY] = useState(false)
-  const [boQuaSanViChat, datBoQuaSanViChat] = useState(false)
+  const [boQuaSanViChat, datBoQuaSanViChat] = useState(true)
   const [loiThieu, datLoiThieu] = useState('')
 
   // §3.6 — nếu đang có lộ trình chạy, nút bị khoá.
@@ -158,13 +164,12 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
         </button>
 
         {/* ⚠ Công cụ dựng giao diện, KHÔNG PHẢI tính năng — xem lib/sinhLoTrinh.js.
-            Mặc định TẮT: sàn canxi/sắt theo ngày (R-32) chạy THẬT, và giới hạn
-            tồn kho món (tối đa 2 lần/tuần mỗi món gốc) cũng chạy THẬT. Với 18
-            món demo hiện có — đặc biệt sau khi mở khoá đủ 4 buổi (buổi chiều
-            chỉ có 2 món khớp) — gần như mọi lộ trình sẽ báo "bất khả" ở tầng
-            canxi HOẶC tầng tồn kho. Bật cờ này để nới CẢ HAI, chỉ để xem tiếp
-            Giai đoạn 3–4 lúc demo cho nhóm, không phải để chiều người dùng
-            thật (đi ngược R-03). */}
+            Mặc định BẬT SẴN 29/7 (đổi từ tắt) để đảm bảo tạo lộ trình luôn
+            thành công lúc demo. Khi TẮT, sàn kcal/dam/canxi/sắt mỗi bữa &
+            mỗi ngày (R-32) và giới hạn tồn kho món (tối đa 2 lần/tuần mỗi
+            món gốc) chạy THẬT theo đúng tài liệu — với 18 món demo hiện có,
+            gần như mọi lộ trình sẽ báo "bất khả" (xem ghi chú #2b). Vẫn để
+            người xem tự tắt thử nếu muốn thấy các màn "Không tạo được". */}
         <label className="bo-qua-san-demo">
           <input
             type="checkbox"

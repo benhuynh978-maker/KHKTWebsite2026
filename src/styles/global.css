@@ -81,6 +81,21 @@ img { display: block; max-width: 100%; }
   font-size: var(--cd-lon);
   font-weight: 650;
   letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--kc-2);
+}
+
+/* Nhãn "khối này thuộc trang nào" — xem ghi chú ở Khoi.jsx prop nguonTrang. */
+.khoi__nguon-trang {
+  font-size: var(--cd-nho);
+  font-weight: 600;
+  color: var(--nhan-dam);
+  background: var(--nhan-nhat);
+  border-radius: var(--bo-tron);
+  padding: 2px 8px;
+  white-space: nowrap;
 }
 
 .khoi__phu {
@@ -139,6 +154,20 @@ img { display: block; max-width: 100%; }
 .chu-nhat { color: var(--chu-nhat); }
 .chu-nho  { font-size: var(--cd-phu); }
 .chu-be   { font-size: var(--cd-nho); }
+
+/* Chỉ dành cho trình đọc màn hình — ẩn khỏi mắt nhưng vẫn đọc được
+   (dùng cho bảng dữ liệu đi kèm biểu đồ, xem BieuDoCot.jsx). */
+.chi-doc-man-hinh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 @media (min-width: 720px) {
   .than-trang { padding-top: var(--kc-5); gap: var(--kc-5); }

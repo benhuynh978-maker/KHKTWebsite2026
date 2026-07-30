@@ -26,10 +26,17 @@ export const HOC_SINH_HIEN_TAI = {
   gioi: 'nam',
   muc_van_dong: 'vua',         // thap | vua | cao
   di_ung: ['lac'],             // mã lấy từ danhSachDiUng.js
+  // Thêm 29/7 — ô "Khác" ở Hồ sơ: ghi chú TỰ DO cho dị ứng ngoài 14 nhóm
+  // chuẩn. KHÔNG tham gia bộ lọc "An toàn dị ứng" (khác di_ung[] ở trên) —
+  // vì thanh_phan_di_ung của món chỉ bao giờ gắn mã trong 14 nhóm chuẩn,
+  // không có chỗ so khớp với chữ tự gõ. Chỉ để hiển thị/ghi chú lại.
+  di_ung_khac: '',
 
   // --- Mục tiêu NGÀY, tra bảng, chỉ xem ---
   kcal_muc_tieu: 2500,
   dam_muc_tieu: 68,
+  glucid_muc_tieu: 375, // thêm 29/7 — xem công thức ở lib/traBangDinhDuong.js
+  lipid_muc_tieu: 69,
   canxi_muc_tieu: 1000,
   sat_muc_tieu: 18,
 

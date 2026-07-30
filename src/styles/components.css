@@ -181,10 +181,16 @@
 }
 .vong-tron--chinh .vong-tron__so { font-size: 1.75rem; }
 
+.vong-tron__nhan-hang {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kc-1);
+  max-width: 15ch;
+}
+
 .vong-tron__nhan {
   font-size: var(--cd-nho);
   color: var(--chu-nhat);
-  max-width: 15ch;
   line-height: 1.35;
 }
 
@@ -231,7 +237,8 @@
 }
 
 .the-mon__quan,
-.the-mon__gio {
+.the-mon__gio,
+.the-mon__dien-thoai {
   font-size: var(--cd-nho);
   color: var(--chu-mo);
 }
@@ -349,6 +356,31 @@
   font-weight: 600;
 }
 
+.loc-di-ung__khung {
+  padding: var(--kc-3);
+  border: 1px solid var(--mau-di-ung-vien);
+  background: var(--mau-di-ung-nen);
+  border-radius: var(--bo-vua);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-2);
+}
+
+.loc-di-ung__khung .chon-di-ung { margin: 0; }
+.loc-di-ung__khung .chon-di-ung__muc input { accent-color: var(--mau-di-ung); }
+
+.chon-di-ung__muc--khong-loc {
+  grid-column: 1 / -1;
+  padding-top: var(--kc-2);
+  border-top: 1px dashed var(--mau-di-ung-vien);
+  font-weight: 600;
+}
+
+.chon-di-ung__muc--khoa {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
 /* --- Lưới thẻ (Khu B "Ăn gì hôm nay") — CSS grid auto-fit, §2.2 ------- */
 
 .luoi-mon {
@@ -452,6 +484,232 @@
   padding: 10px;
 }
 
+/* --- Giá + trung bình sao, CHỈ ĐỌC (DanhGiaSao.jsx) — thêm 29/7 --------
+   Mỗi ô sao chồng 2 lớp: nền xám (luôn đủ 5 sao) + lớp vàng cắt theo % để
+   tô đúng phần thập phân của điểm trung bình (không có ảnh, thuần CSS). */
+
+.modal-mon__gia-hang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kc-3);
+  flex-wrap: wrap;
+}
+
+.danh-gia-sao { text-align: right; }
+
+.danh-gia-sao__sao { display: flex; gap: 2px; }
+
+.danh-gia-sao__o {
+  position: relative;
+  display: inline-block;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.danh-gia-sao__nen { color: var(--vien-dam); }
+
+.danh-gia-sao__day {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #e0a72e;
+}
+
+.danh-gia-sao__tom-tat { margin-top: 2px; }
+
+/* --- Chọn sao để gửi (ChonSao.jsx) — thêm 29/7, đặt trong bảng bình
+   luận (khu vực "Viết đánh giá"), TÁCH khỏi ô chỉ đọc ở trên. --------- */
+
+.chon-sao { display: flex; gap: 2px; }
+
+.chon-sao__nut {
+  font-size: 1.35rem;
+  line-height: 1;
+  padding: 2px;
+  color: var(--vien-dam);
+  transition: color .15s;
+}
+.chon-sao__nut--dang-bat { color: #e0a72e; }
+
+/* --- "Xem bình luận" trên thẻ (ModalMon.jsx) — thêm 29/7 --------------- */
+
+.mon-binh-luan {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px var(--kc-3);
+  border-radius: var(--bo-vua);
+  background: var(--be-mat-chim);
+  font-size: var(--cd-phu);
+  text-align: left;
+}
+.mon-binh-luan:hover { background: var(--vien); }
+.mon-binh-luan__xem { color: var(--nhan-dam); font-weight: 600; }
+
+/* --- Bảng nổi bình luận (BangBinhLuan.jsx) — thêm 29/7 -----------------
+   Nổi TRÊN modal chi tiết (.modal-nen dùng z-index 50) — cùng lớp nền mờ
+   dùng lại, chỉ nâng z-index để chắc chắn luôn ở trên cùng. */
+
+.binh-luan-nen { z-index: 60; }
+
+.binh-luan {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  background: var(--be-mat);
+  border-radius: var(--bo-lon) var(--bo-lon) 0 0;
+  box-shadow: var(--bong-noi);
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 720px) {
+  .binh-luan { border-radius: var(--bo-lon); }
+}
+
+.binh-luan__dau {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kc-3);
+  padding: var(--kc-3) var(--kc-4);
+  border-bottom: 1px solid var(--vien);
+}
+
+.binh-luan__tieu-de { font-weight: 650; font-size: var(--cd-phu); }
+
+.binh-luan__dong {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--bo-tron);
+}
+.binh-luan__dong:hover { background: var(--be-mat-chim); }
+
+.binh-luan__muc + .binh-luan__muc { padding-top: var(--kc-3); border-top: 1px solid var(--vien); }
+
+.binh-luan__ds {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--kc-3) var(--kc-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-3);
+}
+
+.binh-luan__ten { font-weight: 650; font-size: var(--cd-phu); }
+.binh-luan__noi-dung { font-size: var(--cd-phu); line-height: 1.5; margin-top: 2px; }
+
+.binh-luan__viet-danh-gia {
+  border-top: 1px solid var(--vien);
+  padding: var(--kc-3) var(--kc-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-2);
+}
+
+.binh-luan__hang-sao {
+  display: flex;
+  align-items: center;
+  gap: var(--kc-2);
+}
+
+.binh-luan__gui {
+  display: flex;
+  gap: var(--kc-2);
+  align-items: flex-end;
+}
+
+.binh-luan__gui textarea {
+  flex: 1;
+  resize: none;
+  padding: 8px 10px;
+  border-radius: var(--bo-nho);
+  border: 1px solid var(--vien-dam);
+  background: var(--be-mat);
+  font-size: var(--cd-phu);
+  font-family: var(--font);
+}
+
+/* --- Dấu (i) giải thích (ThongTinGoiY.jsx) — thêm 29/7 -----------------
+   Đứng trong tiêu đề Khoi (đã là flex + gap, xem .khoi__tieu-de) nên
+   không cần margin riêng — gap của header lo phần khoảng cách. */
+
+.thong-tin-goi-y {
+  position: relative;
+  display: inline-flex;
+}
+
+.thong-tin-goi-y__nut {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid var(--chu-mo);
+  color: var(--chu-mo);
+  font-size: 11px;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, serif;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: help;
+  transition: color .15s, border-color .15s;
+}
+.thong-tin-goi-y__nut:hover,
+.thong-tin-goi-y__nut:focus-visible {
+  color: var(--nhan-dam);
+  border-color: var(--nhan-dam);
+}
+
+.thong-tin-goi-y__bong {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 8px);
+  left: 50%;
+  width: 230px;
+  max-width: 70vw;
+  padding: 10px 12px;
+  border-radius: var(--bo-vua);
+  background: var(--chu);
+  color: var(--nen);
+  font-size: var(--cd-nho);
+  font-weight: 400;
+  line-height: 1.5;
+  box-shadow: var(--bong-noi);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(-4px);
+  transition: opacity .15s, transform .15s, visibility .15s;
+  pointer-events: none;
+}
+
+.thong-tin-goi-y:hover .thong-tin-goi-y__bong,
+.thong-tin-goi-y__nut:focus-visible ~ .thong-tin-goi-y__bong,
+.thong-tin-goi-y__bong--mo {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Mở lên trên — xem ghi chú `moLen` ở ThongTinGoiY.jsx. */
+.thong-tin-goi-y__bong--len {
+  top: auto;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px);
+}
+.thong-tin-goi-y:hover .thong-tin-goi-y__bong--len,
+.thong-tin-goi-y__nut:focus-visible ~ .thong-tin-goi-y__bong--len,
+.thong-tin-goi-y__bong--len.thong-tin-goi-y__bong--mo {
+  transform: translateX(-50%) translateY(0);
+}
+
 /* --- Checkbox đồng ý (R-34) --------------------------------------------- */
 
 .checkbox-dong-y {
@@ -505,6 +763,25 @@
   color: var(--chu-mo);
   margin-bottom: var(--kc-1);
 }
+
+.ds-case-lo-trinh {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-3);
+}
+
+.case-lo-trinh {
+  border: 1px solid var(--vien);
+  border-radius: var(--bo-nho);
+  background: var(--be-mat);
+  padding: var(--kc-3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.case-lo-trinh__nhan { font-weight: 650; font-size: var(--cd-phu); }
+.case-lo-trinh .nut { align-self: flex-start; margin-top: 4px; }
 
 .bang-thu__dong {
   display: flex;

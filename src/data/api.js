@@ -29,6 +29,9 @@ import { chayTienKiemVaSinhLoTrinh } from '../lib/sinhLoTrinh.js'
 import { tinhMucTieuDinhDuong } from '../lib/traBangDinhDuong.js'
 import { NHOM_DI_UNG, tenDiUng } from './mock/danhSachDiUng.js'
 import { xepKhoangNgay, xepKhoangTuan, xepKhoangThang } from '../lib/xepKhoangThoiGian.js'
+import {
+  layBinhLuanTheoMon, themBinhLuan, layDanhGiaTheoMon, guiDanhGiaMon,
+} from './mock/binhLuan.js'
 
 const MOT_NGAY_MS = 24 * 60 * 60 * 1000
 const BA_TIENG_MS = 3 * 60 * 60 * 1000
@@ -73,8 +76,8 @@ export const xacNhanDongY = () => {
  *  chỉnh sửa dưới bất kỳ hình thức nào") — không có cách nào ghi tay vào
  *  4 cột đó qua hàm này. R-34: mỗi lần sửa Hồ sơ cũng cần đồng ý lại. */
 export const capNhatHoSo = (thongTin) => {
-  const { ten_ao, tuoi, gioi, muc_van_dong, di_ung } = thongTin
-  Object.assign(HOC_SINH_HIEN_TAI, { ten_ao, tuoi, gioi, muc_van_dong, di_ung })
+  const { ten_ao, tuoi, gioi, muc_van_dong, di_ung, di_ung_khac } = thongTin
+  Object.assign(HOC_SINH_HIEN_TAI, { ten_ao, tuoi, gioi, muc_van_dong, di_ung, di_ung_khac })
   Object.assign(HOC_SINH_HIEN_TAI, tinhMucTieuDinhDuong(HOC_SINH_HIEN_TAI))
   xacNhanDongY()
 }
@@ -91,8 +94,9 @@ export const xoaToanBoDuLieu = () => {
   xoaGhiNhanCuaHocSinh(HOC_SINH_HIEN_TAI.ma_6_so)
 
   Object.assign(HOC_SINH_HIEN_TAI, {
-    ten_ao: '', tuoi: null, gioi: null, muc_van_dong: null, di_ung: [],
-    kcal_muc_tieu: null, dam_muc_tieu: null, canxi_muc_tieu: null, sat_muc_tieu: null,
+    ten_ao: '', tuoi: null, gioi: null, muc_van_dong: null, di_ung: [], di_ung_khac: '',
+    kcal_muc_tieu: null, dam_muc_tieu: null, glucid_muc_tieu: null, lipid_muc_tieu: null,
+    canxi_muc_tieu: null, sat_muc_tieu: null,
     da_dong_y: false, ngay_dong_y_gan_nhat: null,
   })
 }
@@ -119,6 +123,19 @@ export const layTatCaQuanKemMon = () =>
     ...q,
     mon: DANH_SACH_MON.filter((m) => m.quan_id === q.id),
   }))
+
+/* --- Bình luận & đánh giá 5 sao theo món (thêm 29/7, xem ghi chú đầy đủ
+   ở mock/binhLuan.js — chưa thuộc khu vực lưu trữ nào đã tài liệu hoá). */
+
+export const layBinhLuan = (mon_id) => layBinhLuanTheoMon(mon_id)
+
+/** Hiển thị tên ảo (ten_ao) của học sinh đang đăng — không phải mã 6 số
+ *  hay tên thật, đúng nguyên tắc định danh giả áp dụng toàn hệ thống. */
+export const guiBinhLuanMon = (mon_id, noiDung) =>
+  themBinhLuan(mon_id, HOC_SINH_HIEN_TAI.ten_ao, noiDung)
+
+export const layDanhGia = (mon_id) => layDanhGiaTheoMon(mon_id)
+export const guiDanhGia = (mon_id, soSao) => guiDanhGiaMon(mon_id, soSao)
 
 /* --- Lộ trình (Khu vực 2) ---------------------------------------------
    Tất cả đọc thẳng từ TRANG_THAI (mock/loTrinh.js) — trạng thái sống DUY
@@ -263,6 +280,7 @@ export const layMonHomNay = () => {
   if (!loTrinh) return { tinh_huong: 'chua_co_lo_trinh' }
 
   const ghiNhan = layGhiNhanLoTrinhHomNay()
+  const khung = layKhungHomNay()
 
   // Tình huống 2 — đã ghi nhận bữa hôm nay: hiện trạng thái xác nhận,
   // không còn là gợi ý nữa.
@@ -271,11 +289,15 @@ export const layMonHomNay = () => {
     if (g.trang_thai === 'da_an_ngoai_khung') {
       return { tinh_huong: 'da_ghi_nhan_ngoai_khung', mon_tu_ghi: g.mon_tu_ghi }
     }
-    return { tinh_huong: 'da_ghi_nhan', mon: layMonKemQuan(g.mon_id) }
+    // Buổi lấy từ ĐÚNG khung đã ghi nhận (join qua lo_trinh_khung_id) —
+    // KHÔNG suy đoán từ mon.buoi (mảng "món này bán buổi nào", có thể
+    // gồm nhiều buổi, không phải "đã ăn vào buổi nào" — thêm 29/7 để nuôi
+    // thẻ món ở Dashboard Khối 1, xem Dashboard.jsx TheMonBuoiHomNay).
+    const khungCuaG = khung.find((k) => k.id === g.lo_trinh_khung_id)
+    return { tinh_huong: 'da_ghi_nhan', mon: layMonKemQuan(g.mon_id), buoi: khungCuaG?.buoi }
   }
 
   // Tình huống 1 — chưa ghi nhận: hiện món hạng 1 khớp khung.
-  const khung = layKhungHomNay()
   const khungKeTiep = khung[0]
   if (!khungKeTiep) return { tinh_huong: 'chua_co_lo_trinh' }
 
@@ -425,6 +447,8 @@ export const ghiNhanDaAnTuChon = (mon) => {
     gia_tai_thoi_diem: mon.gia,
     kcal_tai_thoi_diem: mon.kcal,
     dam_tai_thoi_diem: mon.dam_g,
+    glucid_tai_thoi_diem: mon.glucid_g,
+    lipid_tai_thoi_diem: mon.lipid_g,
     canxi_tai_thoi_diem: mon.canxi_mg,
     sat_tai_thoi_diem: mon.sat_mg,
     thoi_gian_ghi_nhan: new Date().toISOString(),
@@ -436,27 +460,19 @@ export const ghiNhanDaAnTuChon = (mon) => {
    TRANG LỊCH SỬ — hợp nhất Khu vực 2 + Khu vực 3, CHỈ ĐỌC + XOÁ
    "Kế hoạch trang Lịch sử" §4 (bảng 5 trường hợp dữ liệu), §6 (nguồn).
    -------------------------------------------------------------------------
-   §4: Khu vực 2 (lo_trinh_ghi_nhan) lấy buổi qua JOIN với lo_trinh_khung —
-   CHÍNH XÁC. Khu vực 3 (goi_y_ghi_nhan) không có cột buổi, phải SUY ĐOÁN
-   từ giờ trong thoi_gian_ghi_nhan — kém chính xác hơn, đã được chấp nhận
-   khi thiết kế Khu vực 3.
+   Sửa 29/7 (yêu cầu riêng): bỏ hẳn buoi/buoiSuyDoan khỏi mỗi dòng — trang
+   đã hiện thoi_gian_ghi_nhan (giờ:phút thật) nên nhãn buổi suy đoán không
+   còn cần thiết (hàm suyBuoiTuGio cũ chỉ phục vụ đúng việc này, đã xoá
+   theo). Thêm loai_hinh (căn_tin/quan_ngoai) — nuôi bộ lọc "Loại hình"
+   mới ở trang Lịch sử, cùng vốn giá trị với bộ lọc cùng tên ở trang
+   "Quán ăn gần đây".
    ========================================================================= */
 
-function suyBuoiTuGio(iso) {
-  const gio = new Date(iso).getHours()
-  if (gio >= 5 && gio < 10) return 'sang'
-  if (gio >= 10 && gio < 14) return 'trua'
-  if (gio >= 14 && gio < 17) return 'chieu'
-  return 'toi'
-}
-
 export const layLichSuHopNhat = () => {
-  const { tatCaKhung, ghiNhan } = layToanBoKhuVuc2()
-  const khungTheoId = new Map(tatCaKhung.map((k) => [k.id, k]))
+  const { ghiNhan } = layToanBoKhuVuc2()
 
   // Khu vực 2 — mỗi dòng là 1 bữa (trong lộ trình hoặc ngoài lộ trình).
   const tuLoTrinh = ghiNhan.map((g) => {
-    const khung = khungTheoId.get(g.lo_trinh_khung_id)
     const mon = g.mon_id ? layMonKemQuan(g.mon_id) : null
     return {
       id: g.id,
@@ -464,9 +480,10 @@ export const layLichSuHopNhat = () => {
       nhan: g.trang_thai === 'da_an_trong_khung' ? 'trong_khung' : 'ngoai_ke_hoach',
       ten_mon: mon?.ten_mon ?? g.mon_tu_ghi ?? null,
       ten_quan: mon?.quan?.ten_quan ?? null,
+      loai_hinh: mon?.quan?.loai_hinh ?? null,
       gia: g.gia_tai_thoi_diem, kcal: g.kcal_tai_thoi_diem, dam: g.dam_tai_thoi_diem,
+      glucid: g.glucid_tai_thoi_diem, lipid: g.lipid_tai_thoi_diem,
       canxi: g.canxi_tai_thoi_diem, sat: g.sat_tai_thoi_diem,
-      buoi: khung?.buoi ?? null, buoiSuyDoan: false,
       thoi_gian_ghi_nhan: g.thoi_gian_ghi_nhan,
     }
   })
@@ -483,9 +500,10 @@ export const layLichSuHopNhat = () => {
         nhan: g.nguon === 'goi_y_nhanh' ? 'goi_y_nhanh' : 'tu_chon',
         ten_mon: mon?.ten_mon ?? null,
         ten_quan: mon?.quan?.ten_quan ?? null,
+        loai_hinh: mon?.quan?.loai_hinh ?? null,
         gia: g.gia_tai_thoi_diem, kcal: g.kcal_tai_thoi_diem, dam: g.dam_tai_thoi_diem,
+        glucid: g.glucid_tai_thoi_diem, lipid: g.lipid_tai_thoi_diem,
         canxi: g.canxi_tai_thoi_diem, sat: g.sat_tai_thoi_diem,
-        buoi: suyBuoiTuGio(g.thoi_gian_ghi_nhan), buoiSuyDoan: true,
         thoi_gian_ghi_nhan: g.thoi_gian_ghi_nhan,
       }
     })
@@ -537,26 +555,34 @@ export const layDuLieuPhanTich = (muc) => {
   return toanBo.filter((d) => d.kcal != null)
 }
 
-/** Mốc tham chiếu — CHỈ mục "Lộ trình" mới có (Phần 3.3). null nếu không
- *  có lộ trình đang chạy — không suy đoán mốc từ lộ trình đã huỷ/hết hạn.
- *  Chi phí: mốc/ngày = ngân_sách_tuần ÷ 7 (đúng công thức Phần 3.3); tab
- *  Tuần dùng nguyên ngân_sách_tuần; tab Tháng nhân mốc/ngày với số ngày
- *  THẬT của tháng hiện tại (tài liệu không cho công thức tháng — xem 9.2).
- *  Đạm: lấy từ khung lộ trình đang chạy (không phải Hồ sơ — 9.1). */
+/** Mốc tham chiếu — CHỈ mục "Lộ trình" mới có (Phần 3.3).
+ *  Đổi 29/7 (theo yêu cầu riêng, đi khác quyết định cũ ở #9.1 — tài liệu
+ *  cho phép "quyết định khi dựng thật"): TẤT CẢ mốc dinh dưỡng (kcal/đạm/
+ *  glucid/lipid/canxi/sắt) giờ lấy THẲNG từ bảng RNI 15–19 tuổi của Hồ sơ
+ *  (lib/traBangDinhDuong.js) — KHÔNG còn cộng dồn từ lo_trinh_khung của
+ *  lộ trình đang chạy. Ưu điểm: mốc luôn có sẵn (không cần đợi có lộ
+ *  trình chạy mới thấy đường mốc), nhất quán với con số mục tiêu đã hiện
+ *  ở trang Hồ sơ. Riêng Chi tiêu (tiền, không phải dinh dưỡng, không có
+ *  RNI) vẫn PHẢI lấy từ ngân_sách_tuần của lộ trình đang chạy — null nếu
+ *  không có lộ trình, vì không có "ngân sách" nào để tham chiếu. */
 export const layMocThamChieuLoTrinh = (tabThoiGian) => {
+  const hoSo = layHoSo()
   const loTrinh = layLoTrinhDangChay()
-  if (!loTrinh) return null
 
-  const khung = layKhungHomNay()
-  const damMoiNgay = khung.reduce((t, k) => t + k.dam_min, 0)
-  const chiPhiMoiNgay = loTrinh.ngan_sach_tuan / 7
+  const heSo =
+    tabThoiGian === 'ngay' ? 1
+    : tabThoiGian === 'tuan' ? 7
+    : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()
 
-  if (tabThoiGian === 'ngay') return { chiPhi: chiPhiMoiNgay, dam: damMoiNgay }
-  if (tabThoiGian === 'tuan') return { chiPhi: loTrinh.ngan_sach_tuan, dam: damMoiNgay * 7 }
-
-  const homNay = new Date()
-  const soNgayThang = new Date(homNay.getFullYear(), homNay.getMonth() + 1, 0).getDate()
-  return { chiPhi: chiPhiMoiNgay * soNgayThang, dam: damMoiNgay * soNgayThang }
+  return {
+    chiPhi: loTrinh ? (loTrinh.ngan_sach_tuan / 7) * heSo : null,
+    kcal: hoSo.kcal_muc_tieu * heSo,
+    dam: hoSo.dam_muc_tieu * heSo,
+    glucid: hoSo.glucid_muc_tieu * heSo,
+    lipid: hoSo.lipid_muc_tieu * heSo,
+    canxi: hoSo.canxi_muc_tieu * heSo,
+    sat: hoSo.sat_muc_tieu * heSo,
+  }
 }
 
 /** Trang Phân tích — 3 tab thời gian, dùng lại tiện ích xếp khoảng chung

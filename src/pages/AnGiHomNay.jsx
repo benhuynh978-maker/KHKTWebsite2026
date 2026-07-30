@@ -32,7 +32,7 @@ export default function AnGiHomNay() {
   const [monDangXem, datMonDangXem] = useState(null)
 
   const [tuKhoa, datTuKhoa] = useState('')
-  const [locDiUng, datLocDiUng] = useState('khong_loc')
+  const [locDiUng, datLocDiUng] = useState({ cheDo: 'theo_ho_so', dsChon: hoSo.di_ung, khongLoc: false })
   const [locBuoi, datLocBuoi] = useState('tat_ca')
   const [giaToiDa, datGiaToiDa] = useState(50000)
   const [khoangCachToiDa, datKhoangCachToiDa] = useState(2000)
@@ -44,11 +44,15 @@ export default function AnGiHomNay() {
   const monKhopLoc = useMemo(() => {
     const tk = boDauChu(tuKhoa.trim())
 
+    const dsDiUngCanLoc = locDiUng.cheDo === 'theo_ho_so'
+      ? hoSo.di_ung
+      : (locDiUng.khongLoc ? [] : locDiUng.dsChon)
+
     const daLoc = layTatCaMonKemQuan().filter((m) => {
       if (tk && !boDauChu(m.ten_mon).includes(tk) && !boDauChu(m.quan.ten_quan).includes(tk)) {
         return false
       }
-      if (locDiUng === 'theo_ho_so' && m.thanh_phan_di_ung.some((d) => hoSo.di_ung.includes(d))) {
+      if (dsDiUngCanLoc.length > 0 && m.thanh_phan_di_ung.some((d) => dsDiUngCanLoc.includes(d))) {
         return false
       }
       if (locBuoi !== 'tat_ca' && !m.buoi.includes(locBuoi)) return false

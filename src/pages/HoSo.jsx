@@ -27,6 +27,9 @@ export default function HoSo() {
   const [gioi, datGioi] = useState(hoSo.gioi)
   const [mucVanDong, datMucVanDong] = useState(hoSo.muc_van_dong)
   const [diUng, datDiUng] = useState(hoSo.di_ung)
+  // Thêm 29/7 — ô "Khác": ghi chú tự do cho dị ứng ngoài 14 nhóm chuẩn.
+  const [coDiUngKhac, datCoDiUngKhac] = useState(!!hoSo.di_ung_khac)
+  const [diUngKhac, datDiUngKhac] = useState(hoSo.di_ung_khac ?? '')
   const [daTickDongY, datDaTickDongY] = useState(false)
   const [daLuu, datDaLuu] = useState(false)
   const [loi, datLoi] = useState('')
@@ -48,7 +51,10 @@ export default function HoSo() {
     if (!tuoi || tuoi <= 0) { datLoi('Nhập tuổi trước đã.'); return }
     if (!daTickDongY) { datLoi('Cần tick đồng ý sử dụng app trước khi lưu (R-34).'); return }
     datLoi('')
-    capNhatHoSo({ ten_ao: tenAo, tuoi: Number(tuoi), gioi, muc_van_dong: mucVanDong, di_ung: diUng })
+    capNhatHoSo({
+      ten_ao: tenAo, tuoi: Number(tuoi), gioi, muc_van_dong: mucVanDong, di_ung: diUng,
+      di_ung_khac: coDiUngKhac ? diUngKhac.trim() : '',
+    })
     datDaTickDongY(false)
     datDaLuu(true)
   }
@@ -112,7 +118,37 @@ export default function HoSo() {
                 <span>{n.ten}</span>
               </label>
             ))}
+
+            {/* Ô "Khác" — ghi chú tự do, KHÔNG thuộc 14 mã chuẩn nên không
+                tự động so khớp được với thanh_phan_di_ung của món (xem
+                ghi chú ở mock/hocSinh.js và danhSachDiUng.js). */}
+            <label className="chon-di-ung__muc">
+              <input
+                type="checkbox"
+                checked={coDiUngKhac}
+                onChange={(e) => { datCoDiUngKhac(e.target.checked); datDaLuu(false) }}
+              />
+              <span>Khác</span>
+            </label>
           </div>
+
+          {coDiUngKhac && (
+            <label className="truong-form truong-di-ung-khac">
+              <span className="truong-form__nhan">Ghi rõ món/thành phần bị dị ứng</span>
+              <input
+                type="text"
+                placeholder="VD: xoài, hải sản nước ngọt..."
+                value={diUngKhac}
+                onChange={(e) => { datDiUngKhac(e.target.value); datDaLuu(false) }}
+              />
+              <span className="chu-be chu-nhat">
+                Chỉ là ghi chú — hệ thống KHÔNG tự lọc được món theo chữ tự gõ ở đây (bộ lọc
+                "An toàn dị ứng" chỉ so khớp 14 nhóm chuẩn ở trên). Nhân viên căng tin/quán ăn
+                cần được báo trực tiếp về dị ứng này.
+              </span>
+            </label>
+          )}
+
           <p className="chu-be chu-nhat">
             Dị ứng ngoài 14 nhóm này (hiếm)? Báo qua <Link className="lien-ket" to="/cai-dat">Liên hệ hỗ trợ</Link>.
           </p>
