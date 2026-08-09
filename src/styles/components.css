@@ -254,6 +254,119 @@
 .the-mon__cham { color: var(--chu-mo); }
 .the-mon__phu { font-size: var(--cd-nho); color: var(--chu-nhat); }
 
+/* --- Khu chat (Dashboard, Khối 5 "Gợi ý nhanh") -------------------------
+   Bố cục/hiệu ứng mượn từ ChatGPT/Claude.ai: khu tin nhắn cuộn RIÊNG
+   (không cuộn cả trang), ô nhập luôn dính đáy khối. Chỉ mượn bố cục/hiệu
+   ứng, màu vẫn dùng đúng token của hệ thống — không mượn màu. */
+
+.khu-tin-nhan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-3);
+  height: 340px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.khu-tin-nhan > * { flex-shrink: 0; }
+
+.chat-bong {
+  padding: var(--kc-3) var(--kc-4);
+  border-radius: var(--bo-vua);
+  font-size: var(--cd-phu);
+  line-height: 1.5;
+  max-width: 85%;
+}
+
+.chat-bong--nguoi-dung {
+  background: var(--nhan);
+  color: #fff;
+  align-self: flex-end;
+}
+
+.chat-bong--ai { background: var(--be-mat-chim); align-self: flex-start; }
+
+.chat-bong--loi {
+  background: var(--mau-di-ung-nen);
+  color: var(--mau-di-ung);
+  align-self: flex-start;
+}
+
+/* Chấm nhảy "đang xử lý" — 3 chấm nảy lên xuống lệch nhịp. */
+.chat-cham-nhay {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-cham-nhay span {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--bo-tron);
+  background: var(--chu-mo);
+  animation: chat-nhay 1s ease-in-out infinite;
+}
+.chat-cham-nhay span:nth-child(2) { animation-delay: 0.15s; }
+.chat-cham-nhay span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes chat-nhay {
+  0%, 60%, 100% { transform: translateY(0); opacity: .5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Bong bóng "đang gọi tool" — icon xoay thay vì chấm nhảy, để phân biệt
+   trực quan khi (sau này) có bước gọi hàm/tool thật khác với đang soạn chữ. */
+.chat-dang-goi-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kc-2);
+  color: var(--nhan-dam);
+}
+
+.chat-xoay {
+  display: inline-block;
+  animation: chat-quay 0.9s linear infinite;
+}
+
+@keyframes chat-quay {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Hàng chip quick-reply — nằm giữa khu tin nhắn và ô nhập. */
+.hang-box-nhanh {
+  display: flex;
+  gap: var(--kc-2);
+  flex-wrap: wrap;
+  margin-top: var(--kc-3);
+}
+
+.khu-nhap-chat {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--kc-2);
+  margin-top: var(--kc-3);
+}
+
+.o-nhap-chat {
+  flex: 1;
+  resize: none;
+  max-height: 160px;
+  padding: 10px var(--kc-4);
+  border-radius: var(--bo-vua);
+  border: 1px solid var(--vien-dam);
+  background: var(--be-mat);
+  font: inherit;
+  color: var(--chu);
+  line-height: 1.4;
+}
+
+.o-nhap-chat:focus-visible {
+  outline: 2px solid var(--nhan);
+  outline-offset: 1px;
+}
+
+.nut--gui-chat { flex: none; }
+
 /* --- Dải cuộn ngang ---------------------------------------------------- */
 
 .dai-ngang {

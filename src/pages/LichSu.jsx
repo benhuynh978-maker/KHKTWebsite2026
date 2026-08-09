@@ -201,6 +201,7 @@ export default function LichSu() {
                         {d.kcal} kcal · {d.dam}g đạm
                         {d.canxi != null && <> · {d.canxi}mg canxi</>}
                         {d.sat != null && <> · {d.sat}mg sắt</>}
+                        {d.kem != null && <> · {d.kem}mg kẽm</>}
                       </p>
                     )}
                   </div>

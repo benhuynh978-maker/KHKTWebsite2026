@@ -19,20 +19,7 @@ import FormLoTrinh from './loTrinh/FormLoTrinh.jsx'
 import ManCho from './loTrinh/ManCho.jsx'
 import XemLoTrinh from './loTrinh/XemLoTrinh.jsx'
 import TheoDoi from './loTrinh/TheoDoi.jsx'
-import BangThuNghiemLoTrinh from './loTrinh/BangThuNghiemLoTrinh.jsx'
-import { layLoTrinhDangChay, huyLoTrinh, chayHauKiemVaApDung, layHoSo } from '../data/api.js'
-import { xayKhungMoiBuoi } from '../lib/sinhLoTrinh.js'
-
-// DEMO — dữ liệu giả lập CHỈ cho Bảng thử nghiệm bên dưới, không liên
-// quan tới form thật học sinh đang gõ.
-const FORM_THU_NGHIEM = {
-  ngan_sach_tuan: 500000,
-  muc_dich: 'du_chat_trong_ngan_sach',
-  cac_buoi_ap_dung: ['trua', 'toi'],
-  ghi_chu: '',
-  boQuaSanViChat: true,
-  rang_buoc_ghi_chu: {},
-}
+import { layLoTrinhDangChay, huyLoTrinh, chayHauKiemVaApDung } from '../data/api.js'
 
 export default function LoTrinh() {
   const [phienBan, datPhienBan] = useState(0)
@@ -46,49 +33,19 @@ export default function LoTrinh() {
   const [dangHauKiem, datDangHauKiem] = useState(false)
   const [loiHauKiem, datLoiHauKiem] = useState(null)
 
-  // DEMO 29/7 — Bảng thử nghiệm: case đang xem (null = luồng bình thường).
-  const [caseDangXem, datCaseDangXem] = useState(null)
-
   const handleHuyLoTrinhDangChay = () => {
     huyLoTrinh(null)
     lamMoi()
-    datCaseDangXem(null)
     datGiaiDoan('form')
   }
 
-  const xemCaseThuNghiem = (c) => {
-    datCaseDangXem(c)
-    if (c.epKhoaForm) {
-      datGiaiDoan('form')
-      return
-    }
-    if (c.apDungGiaiDoanXem) {
-      const { khungMoiBuoi } = xayKhungMoiBuoi(layHoSo(), FORM_THU_NGHIEM)
-      datForm(FORM_THU_NGHIEM)
-      datKetQuaTienKiem({ khaThi: true, khungMoiBuoi, tongChiDuKien: Math.round(FORM_THU_NGHIEM.ngan_sach_tuan * 0.85) })
-      datLoiHauKiem('Backend kiểm lại lần cuối phát hiện giá một món vừa đổi khác lúc xem trước (demo) — từ chối lưu.')
-      datGiaiDoan('xem')
-      return
-    }
-    datForm(FORM_THU_NGHIEM)
-    datGiaiDoan('cho')
-  }
-
-  const veLuongBinhThuong = () => {
-    datCaseDangXem(null)
-    datLoiHauKiem(null)
-    datGiaiDoan(loTrinhHienTai ? 'theo_doi' : 'form')
-  }
-
   const handleTao = (formData) => {
-    datCaseDangXem(null) // form THẬT gửi — bỏ mọi case demo đang ép, nếu có
     datForm(formData)
     datLoiHauKiem(null)
     datGiaiDoan('cho')
   }
 
   const handleKhaThi = (ketQua, formData) => {
-    datCaseDangXem(null)
     datKetQuaTienKiem(ketQua)
     datForm(formData)
     datGiaiDoan('xem')
@@ -108,19 +65,13 @@ export default function LoTrinh() {
     }, 400)
   }
 
-  const thoatCaseDemo = () => { datCaseDangXem(null); datLoiHauKiem(null); datGiaiDoan('form') }
+  const veLaiForm = () => { datLoiHauKiem(null); datGiaiDoan('form') }
 
   return (
     <>
-      <BangThuNghiemLoTrinh
-        onXemCase={xemCaseThuNghiem}
-        onVeBinhThuong={veLuongBinhThuong}
-        dangEp={!!caseDangXem}
-      />
-
       {giaiDoan === 'form' && (
         <FormLoTrinh
-          coLoTrinhDangChay={caseDangXem?.epKhoaForm || !!loTrinhHienTai}
+          coLoTrinhDangChay={!!loTrinhHienTai}
           onHuy={handleHuyLoTrinhDangChay}
           onTao={handleTao}
         />
@@ -130,9 +81,8 @@ export default function LoTrinh() {
         <ManCho
           form={form}
           onKhaThi={handleKhaThi}
-          onQuayLai={thoatCaseDemo}
-          onHuy={thoatCaseDemo}
-          ketQuaEp={caseDangXem?.ketQua}
+          onQuayLai={veLaiForm}
+          onHuy={veLaiForm}
         />
       )}
 
@@ -141,10 +91,10 @@ export default function LoTrinh() {
           form={form}
           ketQuaTienKiem={ketQuaTienKiem}
           onApDung={handleApDung}
-          onHuyLamLai={thoatCaseDemo}
+          onHuyLamLai={veLaiForm}
           dangHauKiem={dangHauKiem}
           loiHauKiem={loiHauKiem}
-          onDungXoa={thoatCaseDemo}
+          onDungXoa={veLaiForm}
         />
       )}
 

@@ -12,6 +12,10 @@
      • "Chi phí" đổi tên hiển thị thành "Chi tiêu" (số tính y hệt).
      • Thứ tự cột theo đúng yêu cầu: Chi tiêu, kcal, Đạm, Glucid, Lipid,
        Canxi, Sắt.
+
+     Thêm 05/08/2026 (quyết định C2 — giữ kẽm): biểu đồ Kẽm, cuối cùng
+     trong thứ tự cột — cùng cơ chế mốc tham chiếu/màu cố định như 6 chỉ
+     số trên, không có gì khác biệt về xử lý.
    ========================================================================= */
 
 import { useState } from 'react'
@@ -42,6 +46,7 @@ const CAC_CHI_SO = [
   { khoa: 'lipid', nhan: 'Lipid', donVi: 'g', mau: 'var(--mau-bd-lipid)' },
   { khoa: 'canxi', nhan: 'Canxi', donVi: 'mg', mau: 'var(--mau-bd-canxi)' },
   { khoa: 'sat', nhan: 'Sắt', donVi: 'mg', mau: 'var(--mau-bd-sat)' },
+  { khoa: 'kem', nhan: 'Kẽm', donVi: 'mg', mau: 'var(--mau-bd-kem)' },
 ]
 
 export default function PhanTich() {

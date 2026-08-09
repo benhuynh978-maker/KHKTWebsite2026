@@ -72,6 +72,9 @@
   --mau-bd-lipid: #4a3aa7;
   --mau-bd-canxi: #1baf7a;
   --mau-bd-sat: #eda100;
+  /* Kẽm thêm 05/08/2026 — màu thứ 6, đã chạy validate_palette.js (dataviz
+     skill) đối chiếu cùng 5 màu trên: ALL CHECKS PASS (light mode). */
+  --mau-bd-kem: #c1622b;
 
   /* --- Bo góc --- */
   --bo-nho: 8px;

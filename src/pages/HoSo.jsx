@@ -26,6 +26,8 @@ export default function HoSo() {
   const [tuoi, datTuoi] = useState(hoSo.tuoi)
   const [gioi, datGioi] = useState(hoSo.gioi)
   const [mucVanDong, datMucVanDong] = useState(hoSo.muc_van_dong)
+  const [hapThuSat, datHapThuSat] = useState(hoSo.hap_thu_sat)
+  const [hapThuKem, datHapThuKem] = useState(hoSo.hap_thu_kem)
   const [diUng, datDiUng] = useState(hoSo.di_ung)
   // Thêm 29/7 — ô "Khác": ghi chú tự do cho dị ứng ngoài 14 nhóm chuẩn.
   const [coDiUngKhac, datCoDiUngKhac] = useState(!!hoSo.di_ung_khac)
@@ -38,8 +40,11 @@ export default function HoSo() {
   // đang nhập, nhưng không ai gõ thẳng vào 4 số này được — luôn tính lại
   // từ tuổi/giới/mức vận động qua bảng tra.
   const mucTieuXemTruoc = useMemo(
-    () => tinhMucTieuDinhDuong({ tuoi: Number(tuoi) || 0, gioi, muc_van_dong: mucVanDong }),
-    [tuoi, gioi, mucVanDong]
+    () => tinhMucTieuDinhDuong({
+      tuoi: Number(tuoi) || 0, gioi, muc_van_dong: mucVanDong,
+      hap_thu_sat: hapThuSat, hap_thu_kem: hapThuKem,
+    }),
+    [tuoi, gioi, mucVanDong, hapThuSat, hapThuKem]
   )
 
   const doiDiUng = (ma) => {
@@ -52,7 +57,8 @@ export default function HoSo() {
     if (!daTickDongY) { datLoi('Cần tick đồng ý sử dụng app trước khi lưu (R-34).'); return }
     datLoi('')
     capNhatHoSo({
-      ten_ao: tenAo, tuoi: Number(tuoi), gioi, muc_van_dong: mucVanDong, di_ung: diUng,
+      ten_ao: tenAo, tuoi: Number(tuoi), gioi, muc_van_dong: mucVanDong,
+      hap_thu_sat: hapThuSat, hap_thu_kem: hapThuKem, di_ung: diUng,
       di_ung_khac: coDiUngKhac ? diUngKhac.trim() : '',
     })
     datDaTickDongY(false)
@@ -98,6 +104,23 @@ export default function HoSo() {
             <option value="thap">Thấp</option>
             <option value="vua">Vừa</option>
             <option value="cao">Cao</option>
+          </select>
+        </label>
+
+        <label className="truong-form">
+          <span className="truong-form__nhan">Mức hấp thu sắt của khẩu phần</span>
+          <select value={hapThuSat} onChange={(e) => { datHapThuSat(e.target.value); datDaLuu(false) }}>
+            <option value="trungBinh">Trung bình (mặc định — khẩu phần VN phổ biến)</option>
+            <option value="cao">Cao (nhiều thịt/vitamin C)</option>
+          </select>
+        </label>
+
+        <label className="truong-form">
+          <span className="truong-form__nhan">Mức hấp thu kẽm của khẩu phần</span>
+          <select value={hapThuKem} onChange={(e) => { datHapThuKem(e.target.value); datDaLuu(false) }}>
+            <option value="kem">Kém (ít/không đạm động vật)</option>
+            <option value="vua">Vừa (mặc định)</option>
+            <option value="tot">Tốt (nhiều đạm động vật/cá)</option>
           </select>
         </label>
 
@@ -159,7 +182,8 @@ export default function HoSo() {
           <p className="muc-tieu-khoa__tieu-de">Mục tiêu dinh dưỡng (tự động, không thể chỉnh)</p>
           <p className="muc-tieu-khoa__so">
             {mucTieuXemTruoc.kcal_muc_tieu} kcal · {mucTieuXemTruoc.dam_muc_tieu}g đạm ·{' '}
-            {mucTieuXemTruoc.canxi_muc_tieu}mg canxi · {mucTieuXemTruoc.sat_muc_tieu}mg sắt / ngày
+            {mucTieuXemTruoc.canxi_muc_tieu}mg canxi · {mucTieuXemTruoc.sat_muc_tieu}mg sắt ·{' '}
+            {mucTieuXemTruoc.kem_muc_tieu}mg kẽm / ngày
           </p>
           <p className="chu-be chu-nhat">
             Tự động tính từ tuổi/giới/mức vận động, không thể chỉnh. Không có mục tiêu giảm/tăng cân (R-05).

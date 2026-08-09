@@ -94,6 +94,7 @@ export default function TheoDoi({ loTrinh, onHuy }) {
       lipid_tai_thoi_diem: mon.lipid_g,
       canxi_tai_thoi_diem: mon.canxi_mg,
       sat_tai_thoi_diem: mon.sat_mg,
+      kem_tai_thoi_diem: mon.kem_mg,
       so_lan_bam_mon_khac: soLanBamMonKhac,
       thoi_gian_ghi_nhan: new Date().toISOString(),
     })
@@ -115,6 +116,7 @@ export default function TheoDoi({ loTrinh, onHuy }) {
       lipid_tai_thoi_diem: null,
       canxi_tai_thoi_diem: null,
       sat_tai_thoi_diem: null,
+      kem_tai_thoi_diem: null,
       so_lan_bam_mon_khac: soLanBamMonKhac,
       thoi_gian_ghi_nhan: new Date().toISOString(),
     })

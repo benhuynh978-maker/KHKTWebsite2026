@@ -1,17 +1,18 @@
 /* =========================================================================
-   TRANG ĐĂNG KÝ TÀI KHOẢN (DEMO)
+   TRANG ĐĂNG KÝ TÀI KHOẢN
    -------------------------------------------------------------------------
-   Yêu cầu riêng — KHÔNG có trong tài liệu thiết kế chính thức nào. Đây là
-   giao diện đăng ký kiểu thông thường (tên tài khoản + mật khẩu) để demo
-   trước người xem, khác cơ chế mã 6 số thật (xem lib/demoAuth.js).
-
-   KHÔNG lưu, KHÔNG kiểm tra trùng tên tài khoản — chỉ kiểm tra hai ô mật
-   khẩu khớp nhau rồi coi như "đăng ký xong", đưa thẳng vào giao diện chính.
+   Yêu cầu riêng — KHÔNG có trong tài liệu thiết kế chính thức nào. Giao
+   diện đăng ký kiểu thông thường (tên tài khoản + mật khẩu), nhưng từ
+   08/08/2026 tạo tài khoản THẬT qua Supabase Auth (xem khoXacThuc.js —
+   tên tài khoản được quy đổi ngầm thành email giả, người dùng không cần
+   biết việc này). Không có đường khôi phục khi quên mật khẩu — quyết định
+   đã chốt cùng người dùng, xem ghi chú đầu khoXacThuc.js.
    ========================================================================= */
 
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { datDaQuaDangNhapDemo } from '../lib/demoAuth.js'
+import { dangKyThat } from '../data/supabase/khoXacThuc.js'
+import { datTenAoBanDau } from '../data/api.js'
 import { DANH_SACH_TEN_GIA_GOI_Y } from '../data/mock/tenGiaGoiY.js'
 import { xaoTron } from '../lib/xepThuTu.js'
 
@@ -23,19 +24,22 @@ export default function DangKy() {
   const [matKhau, datMatKhau] = useState('')
   const [matKhauLai, datMatKhauLai] = useState('')
   const [loi, datLoi] = useState('')
+  const [dangGui, datDangGui] = useState(false)
 
   // Xáo trộn một lần khi vào trang — đủ để mỗi lượt đăng ký có gợi ý khác
   // nhau đôi chút, không cần chọn ngẫu nhiên lại mỗi lần gõ.
   const goiYTen = useMemo(() => xaoTron(DANH_SACH_TEN_GIA_GOI_Y).slice(0, 6), [])
 
-  const guiDangKy = (e) => {
+  const guiDangKy = async (e) => {
     e.preventDefault()
     if (!tenTaiKhoan.trim()) { datLoi('Nhập tên tài khoản trước đã.'); return }
     if (!matKhau) { datLoi('Nhập mật khẩu mới.'); return }
     if (matKhau !== matKhauLai) { datLoi('Mật khẩu nhập lại không khớp.'); return }
     datLoi('')
-    // DEMO — không tạo tài khoản thật, chỉ đánh dấu đã "qua cổng" rồi vào thẳng app.
-    datDaQuaDangNhapDemo()
+    datDangGui(true)
+    const kq = await dangKyThat(tenTaiKhoan, matKhau)
+    if (!kq.ok) { datDangGui(false); datLoi(kq.loi); return }
+    if (tenGia.trim()) datTenAoBanDau(tenGia.trim())
     navigate('/')
   }
 
@@ -45,7 +49,7 @@ export default function DangKy() {
         <div className="khoi__than">
           <p className="trang-xac-thuc__logo">Ăn đủ chất</p>
           <h1 className="trang-xac-thuc__tieu-de">Đăng ký tài khoản</h1>
-          <p className="chu-nho chu-nhat">Bản demo — thông tin không được lưu lại.</p>
+          <p className="chu-nho chu-nhat">Không có đường khôi phục nếu quên mật khẩu — ghi nhớ kỹ.</p>
 
           <form className="trang-xac-thuc__form" onSubmit={guiDangKy}>
             <div className="truong-form">
@@ -105,8 +109,8 @@ export default function DangKy() {
 
             {loi && <p className="loi-form">{loi}</p>}
 
-            <button className="nut nut--chinh nut--rong" type="submit">
-              Hoàn tất đăng ký
+            <button className="nut nut--chinh nut--rong" type="submit" disabled={dangGui}>
+              {dangGui ? 'Đang đăng ký…' : 'Hoàn tất đăng ký'}
             </button>
           </form>
 

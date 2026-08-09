@@ -13,7 +13,7 @@
    tự co giãn — CSS grid auto-fit).
    ========================================================================= */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Khoi from '../components/Khoi.jsx'
 import TheMon from '../components/TheMon.jsx'
 import ModalMon from '../components/ModalMon.jsx'
@@ -22,6 +22,7 @@ import TrangThaiRong from '../components/TrangThaiRong.jsx'
 import { layDeXuatNoiBat, layTatCaMonKemQuan, layHoSo } from '../data/api.js'
 import { xepRoundRobinTheoQuan } from '../lib/xepThuTu.js'
 import { boDauChu } from '../lib/dinhDang.js'
+import { monAnToanChoDiUng } from '../lib/diUng.js'
 
 export default function AnGiHomNay() {
   const hoSo = layHoSo()
@@ -37,7 +38,14 @@ export default function AnGiHomNay() {
   const [giaToiDa, datGiaToiDa] = useState(50000)
   const [khoangCachToiDa, datKhoangCachToiDa] = useState(2000)
 
-  const deXuatNoiBat = useMemo(() => layDeXuatNoiBat(5), [phienBan])
+  // Đề xuất nổi bật đọc bảng Supabase ẩn danh thật (ASYNC từ 05/08/2026) —
+  // xem ghi chú ở api.js layDeXuatNoiBat.
+  const [deXuatNoiBat, datDeXuatNoiBat] = useState([])
+  useEffect(() => {
+    let huy = false
+    layDeXuatNoiBat(5).then((kq) => { if (!huy) datDeXuatNoiBat(kq) })
+    return () => { huy = true }
+  }, [phienBan])
 
   /* §3.1 — Khu vực 4 tải một lần, lọc trên dữ liệu đã có trong bộ nhớ.
      §3.2 — sau khi lọc, xếp lại theo round-robin để không dồn cục 1 quán. */
@@ -52,9 +60,7 @@ export default function AnGiHomNay() {
       if (tk && !boDauChu(m.ten_mon).includes(tk) && !boDauChu(m.quan.ten_quan).includes(tk)) {
         return false
       }
-      if (dsDiUngCanLoc.length > 0 && m.thanh_phan_di_ung.some((d) => dsDiUngCanLoc.includes(d))) {
-        return false
-      }
+      if (!monAnToanChoDiUng(m, dsDiUngCanLoc)) return false
       if (locBuoi !== 'tat_ca' && !m.buoi.includes(locBuoi)) return false
       if (m.gia > giaToiDa) return false
       if (m.quan.khoang_cach_m > khoangCachToiDa) return false

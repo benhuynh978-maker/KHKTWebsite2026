@@ -2,7 +2,8 @@
    DỮ LIỆU GIẢ — Bảng `mon` (Khu vực 4)
    Schema theo: "Kế hoạch trang Ăn gì hôm nay" §8.1
    -------------------------------------------------------------------------
-   4 chỉ số dinh dưỡng đã chốt: kcal, đạm, canxi, sắt.
+   5 chỉ số dinh dưỡng đã chốt: kcal, đạm, canxi, sắt, kẽm (kẽm thêm 05/08/2026
+   — quyết định C2, "giữ kẽm").
    Mỗi chỉ số đi kèm BIÊN SAI SỐ riêng — bắt buộc theo R-04
    ("Số ước lượng phải kèm biên sai số. Cấm hiển thị số bịa").
 
@@ -26,6 +27,11 @@
      trí bổ sung như `cay`. Số ước lượng thô theo tỉ lệ thường gặp của món
      (cơm/bún nhiều tinh bột, món chiên nhiều chất béo hơn), CHƯA đối
      chiếu Bảng thành phần thực phẩm Việt Nam.
+
+   ⚠ `kem_mg`/`sai_so_kem` thêm 05/08/2026 — cùng mức MINH HOẠ như trên,
+     ước lượng thô theo tỉ lệ đạm động vật (thịt đỏ/nội tạng > gia cầm/hải
+     sản > đậu hũ/thực vật, đúng đặc điểm hấp thu kẽm thật), CHƯA đối chiếu
+     Bảng thành phần thực phẩm Việt Nam.
    ========================================================================= */
 
 export const DANH_SACH_MON = [
@@ -37,6 +43,7 @@ export const DANH_SACH_MON = [
     dam_g: 30, sai_so_dam: 4,
     canxi_mg: 55, sai_so_canxi: 12,
     sat_mg: 3.4, sai_so_sat: 0.6,
+    kem_mg: 4.5, sai_so_kem: 0.9,
     glucid_g: 82, sai_so_glucid: 10,
     lipid_g: 24, sai_so_lipid: 5,
     thanh_phan_di_ung: ['dau_nanh'],
@@ -51,6 +58,7 @@ export const DANH_SACH_MON = [
     dam_g: 37, sai_so_dam: 5,
     canxi_mg: 80, sai_so_canxi: 15,
     sat_mg: 4.1, sai_so_sat: 0.7,
+    kem_mg: 5.2, sai_so_kem: 1.0,
     glucid_g: 88, sai_so_glucid: 10,
     lipid_g: 30, sai_so_lipid: 6,
     thanh_phan_di_ung: ['dau_nanh', 'trung'],
@@ -65,6 +73,7 @@ export const DANH_SACH_MON = [
     dam_g: 28, sai_so_dam: 4,
     canxi_mg: 50, sai_so_canxi: 11,
     sat_mg: 3.2, sai_so_sat: 0.6,
+    kem_mg: 4.2, sai_so_kem: 0.8,
     glucid_g: 58, sai_so_glucid: 8,
     lipid_g: 20, sai_so_lipid: 4,
     thanh_phan_di_ung: ['dau_nanh'],
@@ -79,6 +88,7 @@ export const DANH_SACH_MON = [
     dam_g: 27, sai_so_dam: 4,
     canxi_mg: 75, sai_so_canxi: 18,
     sat_mg: 3.6, sai_so_sat: 0.7,
+    kem_mg: 4.8, sai_so_kem: 0.9,   // thịt bò → tỉ lệ kẽm/đạm cao hơn thịt trắng
     glucid_g: 62, sai_so_glucid: 8,
     lipid_g: 18, sai_so_lipid: 4,
     thanh_phan_di_ung: ['giap_xac', 'ca'],
@@ -94,6 +104,7 @@ export const DANH_SACH_MON = [
     dam_g: 26, sai_so_dam: 3,
     canxi_mg: 60, sai_so_canxi: 14,
     sat_mg: 3.9, sai_so_sat: 0.7,
+    kem_mg: 4.6, sai_so_kem: 0.9,
     glucid_g: 60, sai_so_glucid: 8,
     lipid_g: 14, sai_so_lipid: 3,
     thanh_phan_di_ung: ['ca'],
@@ -108,6 +119,7 @@ export const DANH_SACH_MON = [
     dam_g: 33, sai_so_dam: 5,
     canxi_mg: 45, sai_so_canxi: 10,
     sat_mg: 2.4, sai_so_sat: 0.5,
+    kem_mg: 3.3, sai_so_kem: 0.7,   // thịt gia cầm → tỉ lệ kẽm/đạm thấp hơn thịt đỏ
     glucid_g: 80, sai_so_glucid: 10,
     lipid_g: 28, sai_so_lipid: 5,
     thanh_phan_di_ung: ['dau_nanh', 'ngu_coc_gluten'],
@@ -122,6 +134,7 @@ export const DANH_SACH_MON = [
     dam_g: 17, sai_so_dam: 3,
     canxi_mg: 65, sai_so_canxi: 15,
     sat_mg: 2.3, sai_so_sat: 0.5,
+    kem_mg: 2.0, sai_so_kem: 0.4,
     glucid_g: 52, sai_so_glucid: 6,
     lipid_g: 15, sai_so_lipid: 3,
     thanh_phan_di_ung: ['ngu_coc_gluten', 'trung', 'dau_nanh'],
@@ -136,6 +149,7 @@ export const DANH_SACH_MON = [
     dam_g: 22, sai_so_dam: 3,
     canxi_mg: 58, sai_so_canxi: 13,
     sat_mg: 2.6, sai_so_sat: 0.5,
+    kem_mg: 3.0, sai_so_kem: 0.6,
     glucid_g: 58, sai_so_glucid: 7,
     lipid_g: 12, sai_so_lipid: 3,
     thanh_phan_di_ung: ['giap_xac', 'trung'],
@@ -150,6 +164,7 @@ export const DANH_SACH_MON = [
     dam_g: 21, sai_so_dam: 3,
     canxi_mg: 195, sai_so_canxi: 35,   // cua đồng + đậu hũ → nguồn canxi tốt
     sat_mg: 3.1, sai_so_sat: 0.6,
+    kem_mg: 2.8, sai_so_kem: 0.6,
     glucid_g: 55, sai_so_glucid: 7,
     lipid_g: 13, sai_so_lipid: 3,
     thanh_phan_di_ung: ['giap_xac', 'dau_nanh', 'ca'],
@@ -164,6 +179,7 @@ export const DANH_SACH_MON = [
     dam_g: 25, sai_so_dam: 4,
     canxi_mg: 62, sai_so_canxi: 14,
     sat_mg: 2.8, sai_so_sat: 0.5,
+    kem_mg: 2.6, sai_so_kem: 0.5,
     glucid_g: 68, sai_so_glucid: 8,
     lipid_g: 17, sai_so_lipid: 4,
     thanh_phan_di_ung: ['lac', 'trung', 'ca'],
@@ -179,6 +195,7 @@ export const DANH_SACH_MON = [
     dam_g: 14, sai_so_dam: 3,
     canxi_mg: 40, sai_so_canxi: 9,
     sat_mg: 2.0, sai_so_sat: 0.4,
+    kem_mg: 1.6, sai_so_kem: 0.3,
     glucid_g: 78, sai_so_glucid: 9,
     lipid_g: 12, sai_so_lipid: 3,
     thanh_phan_di_ung: ['trung', 'dau_nanh'],
@@ -193,6 +210,7 @@ export const DANH_SACH_MON = [
     dam_g: 20, sai_so_dam: 3,
     canxi_mg: 70, sai_so_canxi: 16,
     sat_mg: 2.2, sai_so_sat: 0.4,
+    kem_mg: 2.4, sai_so_kem: 0.5,
     glucid_g: 82, sai_so_glucid: 10,
     lipid_g: 22, sai_so_lipid: 5,
     thanh_phan_di_ung: ['trung', 'giap_xac', 'dau_nanh'],
@@ -207,6 +225,7 @@ export const DANH_SACH_MON = [
     dam_g: 24, sai_so_dam: 3,
     canxi_mg: 68, sai_so_canxi: 15,
     sat_mg: 2.7, sai_so_sat: 0.5,
+    kem_mg: 3.8, sai_so_kem: 0.8,
     glucid_g: 62, sai_so_glucid: 8,
     lipid_g: 16, sai_so_lipid: 4,
     thanh_phan_di_ung: ['lac', 'ca', 'dau_nanh'],
@@ -221,6 +240,7 @@ export const DANH_SACH_MON = [
     dam_g: 19, sai_so_dam: 3,
     canxi_mg: 42, sai_so_canxi: 10,
     sat_mg: 6.8, sai_so_sat: 1.2,      // nội tạng → nguồn sắt cao
+    kem_mg: 5.5, sai_so_kem: 1.1,      // nội tạng → nguồn kẽm cao, cùng lý do với sắt
     glucid_g: 48, sai_so_glucid: 6,
     lipid_g: 11, sai_so_lipid: 3,
     thanh_phan_di_ung: ['ca'],
@@ -235,6 +255,7 @@ export const DANH_SACH_MON = [
     dam_g: 26, sai_so_dam: 4,
     canxi_mg: 110, sai_so_canxi: 22,
     sat_mg: 2.5, sai_so_sat: 0.5,
+    kem_mg: 2.2, sai_so_kem: 0.4,
     glucid_g: 70, sai_so_glucid: 9,
     lipid_g: 15, sai_so_lipid: 4,
     thanh_phan_di_ung: ['ca', 'dau_nanh'],
@@ -249,6 +270,7 @@ export const DANH_SACH_MON = [
     dam_g: 18, sai_so_dam: 3,
     canxi_mg: 240, sai_so_canxi: 40,   // đậu hũ → nguồn canxi tốt nhất trong tập
     sat_mg: 3.0, sai_so_sat: 0.6,
+    kem_mg: 1.5, sai_so_kem: 0.3,      // đạm thực vật → kẽm thấp hơn hẳn đạm động vật
     glucid_g: 75, sai_so_glucid: 9,
     lipid_g: 13, sai_so_lipid: 3,
     thanh_phan_di_ung: ['dau_nanh'],
@@ -263,6 +285,7 @@ export const DANH_SACH_MON = [
     dam_g: 23, sai_so_dam: 3,
     canxi_mg: 130, sai_so_canxi: 25,
     sat_mg: 2.9, sai_so_sat: 0.6,
+    kem_mg: 3.0, sai_so_kem: 0.6,
     glucid_g: 58, sai_so_glucid: 7,
     lipid_g: 13, sai_so_lipid: 3,
     thanh_phan_di_ung: ['giap_xac', 'trung', 'ca'],
@@ -277,6 +300,7 @@ export const DANH_SACH_MON = [
     dam_g: 34, sai_so_dam: 5,
     canxi_mg: 55, sai_so_canxi: 12,
     sat_mg: 4.5, sai_so_sat: 0.8,
+    kem_mg: 6.0, sai_so_kem: 1.2,      // thịt bò nạc, đạm cao → kẽm cao nhất trong tập
     glucid_g: 65, sai_so_glucid: 8,
     lipid_g: 32, sai_so_lipid: 6,
     thanh_phan_di_ung: ['dau_nanh', 'ngu_coc_gluten'],

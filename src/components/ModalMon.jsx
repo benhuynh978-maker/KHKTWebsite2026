@@ -41,7 +41,7 @@
      "Viết đánh giá". ModalMon chỉ ĐỌC LẠI kết quả khi đóng bảng bình luận
      (đóng-thì-nạp-lại, xem dongBangBinhLuan bên dưới), không tự gửi sao. */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { tien, khoangCach } from '../lib/dinhDang.js'
 import { ghiNhanDaAnTuChon, tenNhomDiUng, layBinhLuan, layDanhGia } from '../data/api.js'
@@ -49,16 +49,30 @@ import MienTru from './MienTru.jsx'
 import DanhGiaSao from './DanhGiaSao.jsx'
 import BangBinhLuan from './BangBinhLuan.jsx'
 
+// Dữ liệu Supabase thật hiện chưa có cột sai_so_* nào được nhập (toàn null)
+// — ẩn hẳn cụm "(±...)" khi thiếu, không hiện "(±)" rỗng trông như số liệu.
+function BienSaiSo({ giaTri }) {
+  if (giaTri == null) return null
+  return <span className="chu-be chu-nhat"> (±{giaTri})</span>
+}
+
 export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
   const [trangThai, datTrangThai] = useState('xem') // xem | da_ghi | bi_chan
   const [thongDiepChan, datThongDiepChan] = useState('')
   const [hienBinhLuan, datHienBinhLuan] = useState(false)
 
-  // Khởi tạo lười theo mon.id — modal luôn mount MỚI cho mỗi món (đóng
-  // rồi mở lại từ thẻ khác, không đổi mon ngay trong lúc đang mở), nên
-  // không cần đồng bộ lại khi prop mon đổi giữa chừng.
-  const [soBinhLuan, datSoBinhLuan] = useState(() => (mon ? layBinhLuan(mon.id).length : 0))
-  const [danhGia, datDanhGia] = useState(() => (mon ? layDanhGia(mon.id) : null))
+  const [soBinhLuan, datSoBinhLuan] = useState(0)
+  const [danhGia, datDanhGia] = useState(null)
+
+  // Modal luôn mount MỚI cho mỗi món (đóng rồi mở lại từ thẻ khác) — tải
+  // 1 lần khi mount, không cần đồng bộ lại khi prop mon đổi giữa chừng.
+  useEffect(() => {
+    if (!mon) return
+    let huy = false
+    layBinhLuan(mon.id).then((ds) => { if (!huy) datSoBinhLuan(ds.length) })
+    layDanhGia(mon.id).then((dg) => { if (!huy) datDanhGia(dg) })
+    return () => { huy = true }
+  }, [mon])
 
   if (!mon) return null
   const { quan } = mon
@@ -66,10 +80,11 @@ export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
   // Bảng bình luận vừa đóng là lúc duy nhất số bình luận/sao có thể đã
   // đổi (người dùng gửi bên trong đó) — nạp lại một lần ở đây thay vì dò
   // đồng bộ theo từng hành động, đơn giản hơn mà vẫn đúng.
-  const dongBangBinhLuan = () => {
+  const dongBangBinhLuan = async () => {
     datHienBinhLuan(false)
-    datSoBinhLuan(layBinhLuan(mon.id).length)
-    datDanhGia(layDanhGia(mon.id))
+    const ds = await layBinhLuan(mon.id)
+    datSoBinhLuan(ds.length)
+    datDanhGia(await layDanhGia(mon.id))
   }
 
   const xacNhanDaAn = () => {
@@ -117,34 +132,43 @@ export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
             <dl className="modal-mon__dinh-duong">
               <div>
                 <dt>Năng lượng</dt>
-                <dd>{mon.kcal} kcal <span className="chu-be chu-nhat">(±{mon.sai_so_kcal})</span></dd>
+                <dd>{mon.kcal} kcal<BienSaiSo giaTri={mon.sai_so_kcal} /></dd>
               </div>
               <div>
                 <dt>Đạm</dt>
-                <dd>{mon.dam_g} g <span className="chu-be chu-nhat">(±{mon.sai_so_dam})</span></dd>
+                <dd>{mon.dam_g} g<BienSaiSo giaTri={mon.sai_so_dam} /></dd>
               </div>
               <div>
                 <dt>Glucid</dt>
-                <dd>{mon.glucid_g} g <span className="chu-be chu-nhat">(±{mon.sai_so_glucid})</span></dd>
+                <dd>{mon.glucid_g} g<BienSaiSo giaTri={mon.sai_so_glucid} /></dd>
               </div>
               <div>
                 <dt>Lipid</dt>
-                <dd>{mon.lipid_g} g <span className="chu-be chu-nhat">(±{mon.sai_so_lipid})</span></dd>
+                <dd>{mon.lipid_g} g<BienSaiSo giaTri={mon.sai_so_lipid} /></dd>
               </div>
               <div>
                 <dt>Canxi</dt>
-                <dd>{mon.canxi_mg} mg <span className="chu-be chu-nhat">(±{mon.sai_so_canxi})</span></dd>
+                <dd>{mon.canxi_mg} mg<BienSaiSo giaTri={mon.sai_so_canxi} /></dd>
               </div>
               <div>
                 <dt>Sắt</dt>
-                <dd>{mon.sat_mg} mg <span className="chu-be chu-nhat">(±{mon.sai_so_sat})</span></dd>
+                <dd>{mon.sat_mg} mg<BienSaiSo giaTri={mon.sai_so_sat} /></dd>
+              </div>
+              <div>
+                <dt>Kẽm</dt>
+                <dd>{mon.kem_mg} mg<BienSaiSo giaTri={mon.sai_so_kem} /></dd>
               </div>
             </dl>
 
-            {mon.thanh_phan_di_ung.length > 0 && (
+            {Array.isArray(mon.thanh_phan_di_ung) && mon.thanh_phan_di_ung.length > 0 && (
               <p className="modal-mon__thanh-phan">
                 <span className="chu-nhat">Thành phần có thể gây dị ứng: </span>
                 {mon.thanh_phan_di_ung.map(tenNhomDiUng).join(', ')}
+              </p>
+            )}
+            {!Array.isArray(mon.thanh_phan_di_ung) && (
+              <p className="modal-mon__thanh-phan chu-nhat">
+                Món này CHƯA được kiểm tra thành phần dị ứng — hỏi trực tiếp quán trước khi ăn nếu bạn có dị ứng.
               </p>
             )}
 

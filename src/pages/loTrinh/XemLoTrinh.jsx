@@ -22,7 +22,7 @@ function ngayThu(offsetTuNgayHomNay) {
 }
 
 export default function XemLoTrinh({ form, ketQuaTienKiem, onApDung, onHuyLamLai, dangHauKiem, loiHauKiem, onDungXoa }) {
-  const { khungMoiBuoi, tongChiDuKien } = ketQuaTienKiem
+  const { khungMoiBuoi, tongChiDuKien, canhBao } = ketQuaTienKiem
 
   // Tổng quan "phân bổ dinh dưỡng trung bình ngày" — tính từ KHUNG (trung
   // điểm kcal, sàn đạm), không từ món cụ thể nào (đúng nguyên tắc "khung,
@@ -39,6 +39,19 @@ export default function XemLoTrinh({ form, ketQuaTienKiem, onApDung, onHuyLamLai
         <p><strong>Tổng chi dự kiến/tuần:</strong> ≤ {tien(form.ngan_sach_tuan)} (thực tế mô phỏng ~{tien(tongChiDuKien)})</p>
         <p><strong>Trung bình dinh dưỡng/ngày (theo khung):</strong> ~{Math.round(trungBinhKcal)} kcal · ≥{trungBinhDam}g đạm</p>
       </div>
+
+      {/* Pha 2 (07/08/2026) — thuật toán LUÔN sinh được lộ trình (trừ dị
+          ứng chặn cứng ở Giai đoạn 2), những điểm chưa đạt tuyệt đối
+          (ngân sách/sàn canxi-sắt/ghi chú tránh cay) hiện ở đây dưới dạng
+          cảnh báo thay vì chặn — xem lib/sinhLoTrinh.js. */}
+      {canhBao && canhBao.length > 0 && (
+        <div className="canh-bao-lo-trinh">
+          <p className="chu-nho chu-nhat">Vài điểm chưa đạt tuyệt đối trong lộ trình mô phỏng dưới đây:</p>
+          <ul className="danh-sach-canh-bao">
+            {canhBao.map((cb, i) => <li key={i}>{cb}</li>)}
+          </ul>
+        </div>
+      )}
 
       <div className="danh-sach-ngay">
         {Array.from({ length: 7 }, (_, i) => i + 1).map((ngay) => (

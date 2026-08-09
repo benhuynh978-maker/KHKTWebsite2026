@@ -2,11 +2,10 @@
    TRẠNG THÁI LỘ TRÌNH SỐNG — nguồn dữ liệu DUY NHẤT cho Khu vực 2
    -------------------------------------------------------------------------
    Khác với các file mock/ khác (dữ liệu tĩnh), file này giữ một trạng thái
-   CÓ THỂ THAY ĐỔI trong lúc chạy demo. Ba nơi cùng đọc/ghi vào ĐÚNG một
-   trạng thái này:
+   CÓ THỂ THAY ĐỔI trong lúc chạy. Hai nơi cùng đọc/ghi vào ĐÚNG một trạng
+   thái này:
 
      • Trang Lộ trình — luồng 4 giai đoạn thật (tạo/huỷ/ghi nhận từng bữa).
-     • "Bảng thử nghiệm" trên Dashboard — chọn 1 kịch bản để xem nhanh.
      • Trang Lịch sử — CHỈ ĐỌC, hợp nhất toàn bộ lo_trinh_khung/ghi_nhan
        từng tạo, kể cả của các lộ trình ĐÃ HUỶ/HẾT HẠN.
 
@@ -23,14 +22,12 @@
    ========================================================================= */
 
 import { HOC_SINH_HIEN_TAI } from './hocSinh.js'
-import { xayKhungMoiBuoi } from '../../lib/sinhLoTrinh.js'
 
 export const TRANG_THAI = {
   lo_trinh: null,           // lộ trình ĐANG CHẠY hiện tại (hoặc null)
   tat_ca_lo_trinh: [],      // TOÀN BỘ lộ trình từng tạo, kể cả đã huỷ/hết hạn
   tat_ca_khung: [],         // TOÀN BỘ lo_trinh_khung từng tạo (mảng PHẲNG, mọi lộ trình)
   ghi_nhan: [],             // TOÀN BỘ lo_trinh_ghi_nhan từng tạo (mọi lộ trình)
-  ghi_nhan_goi_y_demo: [],  // CHỈ phục vụ kịch bản demo (Khu vực 3), xem KICH_BAN bên dưới
 }
 
 /** Ngày thứ mấy (1–7) trong lộ trình đang chạy là HÔM NAY — dùng
@@ -157,120 +154,11 @@ export function layToanBoKhuVuc2() {
   }
 }
 
-/* =========================================================================
-   KỊCH BẢN DEMO — nạp cho "Bảng thử nghiệm" trên Dashboard (sẽ gỡ trước
-   khi dùng thật). Mỗi lần chọn kịch bản = XOÁ SẠCH trạng thái rồi dựng lại
-   từ đầu (khác luồng thật — luồng thật LUÔN giữ lịch sử). Điều này giữ
-   Bảng thử nghiệm dễ đoán: chọn kịch bản nào, thấy đúng kịch bản đó, không
-   cộng dồn qua các lần bấm thử trước.
-   ========================================================================= */
-
-const FORM_DEMO = {
-  ngan_sach_tuan: 420000,
-  muc_dich: 'du_chat_trong_ngan_sach',
-  cac_buoi_ap_dung: ['trua', 'toi'],
-}
-
 function xoaSachTrangThai() {
   TRANG_THAI.lo_trinh = null
   TRANG_THAI.tat_ca_lo_trinh = []
   TRANG_THAI.tat_ca_khung = []
   TRANG_THAI.ghi_nhan = []
-  TRANG_THAI.ghi_nhan_goi_y_demo = []
-}
-
-function napLoTrinhDemo() {
-  xoaSachTrangThai()
-  const { khungMoiBuoi } = xayKhungMoiBuoi(HOC_SINH_HIEN_TAI, FORM_DEMO)
-  taoLoTrinhMoi(FORM_DEMO, khungMoiBuoi)
-  // Lùi ngày bắt đầu 2 hôm để hôm nay rơi vào "Ngày 3" — giống một lộ
-  // trình đã chạy được vài hôm, chỉ để demo nhìn tự nhiên hơn.
-  const luiLai = new Date()
-  luiLai.setDate(luiLai.getDate() - 2)
-  TRANG_THAI.lo_trinh.ngay_bat_dau = luiLai.toISOString().slice(0, 10)
-  const i = TRANG_THAI.tat_ca_lo_trinh.findIndex((l) => l.id === TRANG_THAI.lo_trinh.id)
-  if (i >= 0) TRANG_THAI.tat_ca_lo_trinh[i] = { ...TRANG_THAI.tat_ca_lo_trinh[i], ngay_bat_dau: TRANG_THAI.lo_trinh.ngay_bat_dau }
-}
-
-function khungHomNayCuaBuoi(buoi) {
-  const thuTu = thuTuNgayHomNay()
-  return TRANG_THAI.tat_ca_khung.find(
-    (k) => k.lo_trinh_id === TRANG_THAI.lo_trinh.id && k.thu_tu_ngay === thuTu && k.buoi === buoi
-  )
-}
-
-export const KICH_BAN = {
-  khong_co_lo_trinh: {
-    nhan: 'Chưa có lộ trình · Khối 1 ẩn hoàn toàn',
-    ap: () => xoaSachTrangThai(),
-  },
-  co_lo_trinh_chua_an: {
-    nhan: 'Có lộ trình · chưa ghi nhận bữa nào hôm nay',
-    ap: () => napLoTrinhDemo(),
-  },
-  da_an_trong_khung: {
-    nhan: 'Đã ăn trưa · trong lộ trình',
-    ap: () => {
-      napLoTrinhDemo()
-      const k = khungHomNayCuaBuoi('trua')
-      if (k) {
-        themGhiNhanLoTrinh({
-          id: 'gn-demo-01', lo_trinh_khung_id: k.id,
-          trang_thai: 'da_an_trong_khung', mon_id: 'm06', mon_tu_ghi: null,
-          gia_tai_thoi_diem: 32000, kcal_tai_thoi_diem: 720, dam_tai_thoi_diem: 33,
-          glucid_tai_thoi_diem: 80, lipid_tai_thoi_diem: 28,
-          canxi_tai_thoi_diem: 45, sat_tai_thoi_diem: 2.4, so_lan_bam_mon_khac: 1,
-          thoi_gian_ghi_nhan: new Date().toISOString(),
-        })
-      }
-    },
-  },
-  da_an_ngoai_ke_hoach: {
-    nhan: 'Đã ăn trưa · ngoài lộ trình',
-    ap: () => {
-      napLoTrinhDemo()
-      const k = khungHomNayCuaBuoi('trua')
-      if (k) {
-        themGhiNhanLoTrinh({
-          id: 'gn-demo-02', lo_trinh_khung_id: k.id,
-          trang_thai: 'da_an_ngoai_khung', mon_id: null, mon_tu_ghi: 'Mì gói với bạn cùng phòng',
-          gia_tai_thoi_diem: null, kcal_tai_thoi_diem: null, dam_tai_thoi_diem: null,
-          canxi_tai_thoi_diem: null, sat_tai_thoi_diem: null, so_lan_bam_mon_khac: 0,
-          thoi_gian_ghi_nhan: new Date().toISOString(),
-        })
-      }
-    },
-  },
-  co_them_goi_y_nhanh: {
-    nhan: 'Ăn trưa trong lộ trình + 1 bữa qua Gợi ý nhanh',
-    ap: () => {
-      napLoTrinhDemo()
-      const k = khungHomNayCuaBuoi('trua')
-      if (k) {
-        themGhiNhanLoTrinh({
-          id: 'gn-demo-03', lo_trinh_khung_id: k.id,
-          trang_thai: 'da_an_trong_khung', mon_id: 'm06', mon_tu_ghi: null,
-          gia_tai_thoi_diem: 32000, kcal_tai_thoi_diem: 720, dam_tai_thoi_diem: 33,
-          glucid_tai_thoi_diem: 80, lipid_tai_thoi_diem: 28,
-          canxi_tai_thoi_diem: 45, sat_tai_thoi_diem: 2.4, so_lan_bam_mon_khac: 0,
-          thoi_gian_ghi_nhan: new Date().toISOString(),
-        })
-      }
-      TRANG_THAI.ghi_nhan_goi_y_demo = [{
-        id: 'gy-demo-01', ma_hoc_sinh: HOC_SINH_HIEN_TAI.ma_6_so, mon_id: 'm07',
-        nguon: 'goi_y_nhanh', gia_tai_thoi_diem: 20000, kcal_tai_thoi_diem: 420,
-        dam_tai_thoi_diem: 17, glucid_tai_thoi_diem: 52, lipid_tai_thoi_diem: 15,
-        canxi_tai_thoi_diem: 65, sat_tai_thoi_diem: 2.3,
-        thoi_gian_ghi_nhan: new Date().toISOString(),
-      }]
-    },
-  },
-}
-
-export const KICH_BAN_MAC_DINH = 'da_an_trong_khung'
-
-export function apKichBanVaoTrangThai(ten) {
-  KICH_BAN[ten]?.ap()
 }
 
 /** Cài đặt §3.3.2 — "xoá TOÀN BỘ dữ liệu": bản demo chỉ có MỘT học sinh

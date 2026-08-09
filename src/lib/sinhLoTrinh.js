@@ -1,52 +1,33 @@
 /* =========================================================================
-   THUẬT TOÁN SINH LỘ TRÌNH — PHIÊN BẢN TẠM, CHỈ ĐỦ CHO GIAO DIỆN 4 GIAI ĐOẠN
-   -------------------------------------------------------------------------
-   ⚠ ĐÂY KHÔNG PHẢI "Thuật toán sinh khung & hàm chấm điểm" cuối cùng đang
-     được bàn ở tầng backend (Kế hoạch dự án Phần 5 — trọng số đa mục tiêu,
-     grid search trên xếp hạng học sinh thật). Đây là bản đơn giản, tất
-     định, đủ để 4 giai đoạn của trang Lộ trình chạy được trên dữ liệu
-     thật (18 món demo) và phản ánh đúng logic ràng buộc đã chốt — không
-     phải bản tối ưu cuối cùng. Khi thuật toán thật được chốt, thay phần
-     thân các hàm dưới đây; các trang gọi chúng không cần sửa.
+   THUẬT TOÁN SINH LỘ TRÌNH — Pha 2 (07/08/2026), port công thức đã kiểm
+   định từ test/lo-trinh-sinh.js + test/dieu-phoi-lo-trinh.js (xem
+   test/lich-su/lo-trinh.md), thay bản tạm dùng số % tuỳ đặt trước đó.
 
-   Cài đặt Ở ĐÂY theo ĐÚNG tài liệu hiện có, kể cả những chỗ đã biết là
-   vấn đề (không tự vá — theo quyết định "bám tài liệu 100%" của nhóm):
+   3 điểm khác biệt có chủ đích so với test/ (đã được người dùng xác nhận
+   khi lên kế hoạch Pha 2, 07/08/2026):
+   1. Buổi: quay lại đúng test/ — chỉ 2 tổ hợp cố định (3 hoặc 4 bữa), suy
+      từ `form.cac_buoi_ap_dung.length` (không cần field so_bua riêng —
+      bảng `lo_trinh` không có cột này, tránh phải sửa schema).
+   2. Triết lý "bất khả": theo test/ — CHỈ dị ứng (tầng 4, an toàn tính
+      mạng) còn chặn cứng. Ngân sách/tồn kho/sàn canxi-sắt/ghi chú "tránh
+      cay" đều chuyển thành CẢNH BÁO đi kèm kết quả thành công (mảng
+      `canhBao`), khác 5 tầng chặn cứng của bản tạm trước đây.
+   3. Chống lặp Giai đoạn 4 (ghi nhận thật, xem api.js:layMonKhopKhung)
+      không có tiền lệ ở test/ (test/ chưa từng làm Giai đoạn 4) — tự thiết
+      kế dựa trên lịch sử ghi nhận thật, không phải mô phỏng.
 
-   • #30 — gia_max mỗi bữa = ngân_sách_tuần / tổng_số_bữa_tuần (trần PHẲNG
-     mỗi bữa, đúng cách "Cơ sở dữ liệu lưu trữ" §2.3 định nghĩa cột
-     gia_max). Điều này KHÔNG hiện thực đúng lời văn "ngân sách chảy giữa
-     các ngày" ở Kế hoạch dự án §2.2 — mâu thuẫn giữa hai tài liệu, nhóm
-     CHƯA giải quyết. Bám theo schema (cụ thể hơn) ở đây.
-
-   • #3 — % năng lượng/đạm phân bổ theo bữa (TI_LE_THEO_BUOI bên dưới) là
-     GIẢ ĐỊNH MINH HOẠ, CHƯA đối chiếu bảng chính thức của QĐ 3958/QĐ-BYT
-     (R-30 yêu cầu tham chiếu văn bản đó, không tự đặt số tuỳ ý).
-
-   • #2 — Sàn canxi/sắt THEO NGÀY (R-32) được kiểm tra THẬT, không giả vờ
-     đạt. Với 18 món demo, tổ hợp trưa+tối tốt nhất chỉ đạt ~400–450mg
-     canxi/ngày so với sàn ~1000mg → HẦU HẾT lộ trình sẽ báo BẤT KHẢ vì
-     canxi, đúng như đã dự đoán khi rà soát 9 tài liệu. Cờ boQuaSanViChat
-     (mặc định TẮT trên form) chỉ để xem tiếp Giai đoạn 3–4 lúc demo —
-     KHÔNG phải một tính năng thật, sẽ gỡ khi vấn đề #2 được quyết ở tầng
-     thuật toán.
-
-   • #2b — DEMO 29/7: sau khi form mở khoá cả 4 buổi (yêu cầu riêng, khác
-     MVP — xem FormLoTrinh.jsx), buổi "chiều" chỉ có 2 món khớp khung
-     (quán ngoài, bán buổi chiều) trong 18 món demo. Giới hạn thật "1 món
-     gốc ≤ 2 lần/tuần" (Cơ sở dữ liệu §... , tầng 2) khiến buổi chiều chỉ
-     đủ món cho tối đa 4/7 ngày → tầng 1 báo "hết món khả dụng" từ ngày 5.
-     Đây KHÔNG phải lỗi code, mà là hệ quả tất yếu của tập dữ liệu demo quá
-     nhỏ so với việc bật đủ 4 buổi. Cờ boQuaSanViChat khi bật cũng nới tầng
-     2 (ngưỡng "đủ món khác nhau" hạ xuống còn 1) và bỏ giới hạn tái sử
-     dụng món gốc trong tuần — CHỈ để đi hết được 4 giai đoạn lúc demo,
-     không phải sửa lại ràng buộc tồn kho thật.
+   Field món dùng thẳng shape thật của khoVi4.js (dam_g/canxi_mg/sat_mg/
+   kem_mg/glucid_g/lipid_g/coDinhDuong/mon_goc_id...), không phải mock cũ.
    ========================================================================= */
 
 import { DANH_SACH_MON } from '../data/mock/mon.js'
 import { DANH_SACH_QUAN } from '../data/mock/quan.js'
 import { tien, TEN_BUOI } from './dinhDang.js'
+import { monAnToanChoDiUng } from './diUng.js'
+import { tinhDiem } from './chamDiem.js'
+import { THAM_SO_CHUAN } from './thamSoChamDiem.js'
+import { TI_LE_BUA, SO_UNG_VIEN_TOP, KHOANG_CACH_CHONG_LAP, BUOC_NOI_RONG_TOP } from './thamSoLoTrinh.js'
 
-const TI_LE_THEO_BUOI = { sang: 0.25, trua: 0.35, chieu: 0.15, toi: 0.30 }
 const NGUON_THEO_BUOI = { sang: 'quan_ngoai', trua: 'cang_tin', chieu: 'quan_ngoai', toi: 'quan_ngoai' }
 const BAN_KINH_MAC_DINH = 800
 
@@ -64,105 +45,178 @@ function layTatCaMonKemQuanNoiBo() {
   return DANH_SACH_MON.map((m) => ({ ...m, quan: quanTheoId.get(m.quan_id) }))
 }
 
-/** Xây khung dinh dưỡng cho MỖI bữa đã chọn — không đổi theo ngày trong
- *  bản tạm này (MVP chưa cài "cân bằng đạm giữa các ngày" — một ràng buộc
- *  xuyên-ngày mềm hơn, để lại cho thuật toán thật). */
-export function xayKhungMoiBuoi(hoSo, form) {
-  const soBuaMoiNgay = form.cac_buoi_ap_dung.length
-  const soBuaTuan = soBuaMoiNgay * 7
-  const giaMaxMoiBua = Math.max(1000, Math.floor(form.ngan_sach_tuan / soBuaTuan))
-
-  const khungMoiBuoi = {}
-  for (const buoi of form.cac_buoi_ap_dung) {
-    const tiLe = TI_LE_THEO_BUOI[buoi]
-    khungMoiBuoi[buoi] = {
-      buoi,
-      nguon: NGUON_THEO_BUOI[buoi],
-      kcal_min: Math.round(hoSo.kcal_muc_tieu * tiLe * 0.85),
-      kcal_max: Math.round(hoSo.kcal_muc_tieu * tiLe * 1.2),
-      dam_min: Math.round(hoSo.dam_muc_tieu * tiLe),
-      gia_max: giaMaxMoiBua,
-      ban_kinh_m: NGUON_THEO_BUOI[buoi] === 'cang_tin' ? null : BAN_KINH_MAC_DINH,
-    }
-  }
-  return { khungMoiBuoi, giaMaxMoiBua, soBuaTuan }
+/* Băm chuỗi → số nguyên 32-bit không dấu (djb2) — port test/lo-trinh-sinh.js,
+   tất định tuyệt đối (không Math.random()), giữ được cách kiểm chứng "tính
+   tay số kỳ vọng trước" của cả dự án (CLAUDE.md mục E). */
+function bamChuoiTatDinh(s) {
+  let h = 5381
+  for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0
+  return h >>> 0
 }
 
-function monKhopKhung(mon, khung, hoSo, rangBuocGhiChu, boQuaSanViChat = false) {
-  if (!mon.buoi.includes(khung.buoi)) return false
-  if (mon.quan.loai_hinh !== khung.nguon) return false
-  if (mon.gia > khung.gia_max) return false
-  // DEMO (#2b) — sàn kcal_min/dam_min mỗi bữa cũng là "sàn dinh dưỡng" như
-  // canxi/sắt theo ngày, chỉ khác cấp độ (mỗi bữa thay vì mỗi ngày). Với
-  // hồ sơ demo (kcal_muc_tieu 2500) và tỉ lệ bữa trưa 35%, sàn kcal_min
-  // bữa trưa (744) CAO HƠN món căng-tin đắt calo nhất hiện có (720) — nghĩa
-  // là 0 món khớp khung TRƯA, cho MỌI lộ trình mới, bất kể ngân sách hay
-  // buổi đã chọn (đã xác minh bằng cách chạy thử với dữ liệu mặc định).
-  // Đây là lý do thật gây "Không tạo được lộ trình" ở Giai đoạn 2. Bật cờ
-  // demo thì bỏ qua kcal_min/dam_min ở TỪNG BỮA (vẫn giữ kcal_max, giá,
-  // dị ứng, bán kính) để có thể đi hết 4 giai đoạn lúc demo.
-  if (!boQuaSanViChat) {
-    if (mon.kcal < khung.kcal_min || mon.kcal > khung.kcal_max) return false
-    if (mon.dam_g < khung.dam_min) return false
-  } else if (mon.kcal > khung.kcal_max) {
-    return false
+function chonTatDinhTheoSeed(list, seed) {
+  return list[bamChuoiTatDinh(seed) % list.length]
+}
+
+function monChuaLapGanDay(mon, lichSuDaDung, ngay) {
+  const ngayCuoiDung = lichSuDaDung.get(mon.id)
+  return ngayCuoiDung === undefined || ngay - ngayCuoiDung >= KHOANG_CACH_CHONG_LAP
+}
+
+/** Mục tiêu dinh dưỡng ĐÚNG 1 BỮA (số đơn, không phải khoảng) — dùng cho
+ *  `tinhDiem()`. KHÔNG lưu vào khung (không đụng schema Supabase), tính lại
+ *  mỗi lần cần. Gọi thẳng `tinhDiem()`, KHÔNG qua `xepHangMon()` — hàm đó tự
+ *  nhân `HE_SO_BUA` (giả định "1 bữa = 40% ngày" cho Gợi ý nhanh), ở đây
+ *  mục tiêu đã là số của ĐÚNG buổi đang xét, nhân lại sẽ sai gấp đôi hệ số
+ *  (xem test/lich-su/lo-trinh.md mục "Kiến trúc"). */
+export function mucTieuMotBuaTuHoSo(hoSo, tiLe) {
+  return {
+    kcal: (hoSo.kcal_muc_tieu ?? 0) * tiLe,
+    canxi: (hoSo.canxi_muc_tieu ?? 0) * tiLe,
+    sat: (hoSo.sat_muc_tieu ?? 0) * tiLe,
+    kem: (hoSo.kem_muc_tieu ?? 0) * tiLe,
   }
+}
+
+/* Chỉ xét BUỔI — dùng cho tầng 4 (an toàn dị ứng, tầng DUY NHẤT chặn cứng).
+   Nguồn (căng-tin/quán ngoài) và bán kính KHÔNG phải vấn đề an toàn, mà là
+   tồn kho/dữ liệu (đúng tầng 2 cũ) — nên KHÔNG được gộp vào đây, dù cùng
+   nằm trong object `khung`. Tách riêng để phát hiện đúng thật: dữ liệu
+   hiện có 0 quán `cang_tin` (chưa khảo sát căng-tin trường), nếu gộp
+   chung sẽ chặn cứng NHẦM bữa trưa mọi lúc dù không hề liên quan dị ứng. */
+function monKhopBuoi(mon, khung) {
+  return mon.buoi.includes(khung.buoi)
+}
+
+function monKhopNguonBanKinh(mon, khung) {
+  if (mon.quan.loai_hinh !== khung.nguon) return false
   if (khung.ban_kinh_m && mon.quan.khoang_cach_m > khung.ban_kinh_m) return false
-  if (mon.thanh_phan_di_ung.some((d) => hoSo.di_ung.includes(d))) return false
-  // Tầng 5 — Nhất quán ghi chú.
-  if (rangBuocGhiChu?.tranh_cay && mon.cay) return false
   return true
 }
 
+/** Khung dinh dưỡng/giá cho MỖI buổi đã chọn — dùng để HIỂN THỊ (Giai đoạn 3)
+ *  và LƯU Supabase (`lo_trinh_khung`, 5 cột numeric cố định: kcal_min/
+ *  kcal_max/dam_min/gia_max/ban_kinh_m — KHÔNG thêm field lạ vào object này,
+ *  sẽ vỡ INSERT). kcal theo dải đã dùng để chấm điểm (`THAM_SO_CHUAN.daiKcal`,
+ *  85%-115%); đạm theo cận dưới dải AMDR (`daiPLG.dam`, suy ra gam từ %,
+ *  KHÔNG phải số mới tự đặt); ngân sách/bữa = (ngân_sách_tuần/7) × tỉ_lệ_buổi
+ *  — CÙNG bảng tỉ lệ với dinh dưỡng (buổi ăn nhiều thì chi phí tự nhiên
+ *  nhiều hơn, quyết định gốc của test/, chốt 02/08/2026). */
+export function xayKhungMoiBuoi(hoSo, form) {
+  const soBua = form.cac_buoi_ap_dung.length
+  const tiLeBang = TI_LE_BUA[soBua]
+
+  const khungMoiBuoi = {}
+  for (const buoi of form.cac_buoi_ap_dung) {
+    const tiLe = tiLeBang[buoi]
+    const kcalBua = (hoSo.kcal_muc_tieu ?? 0) * tiLe
+    const damBuaCanDuoi = (kcalBua * THAM_SO_CHUAN.daiPLG.dam[0]) / 100 / 4
+    khungMoiBuoi[buoi] = {
+      buoi,
+      nguon: NGUON_THEO_BUOI[buoi],
+      kcal_min: Math.round(kcalBua * THAM_SO_CHUAN.daiKcal.a),
+      kcal_max: Math.round(kcalBua * THAM_SO_CHUAN.daiKcal.b),
+      dam_min: Math.round(damBuaCanDuoi),
+      gia_max: Math.max(1000, Math.round((form.ngan_sach_tuan / 7) * tiLe)),
+      ban_kinh_m: NGUON_THEO_BUOI[buoi] === 'cang_tin' ? null : BAN_KINH_MAC_DINH,
+    }
+  }
+  return { khungMoiBuoi }
+}
+
+/** Chọn 1 món cho đúng 1 bữa trong mô phỏng 7 ngày. LUÔN cố trả về 1 món
+ *  (triết lý test/: "luôn sinh, không bao giờ bất khả" — trừ dị ứng đã
+ *  chặn ở tầng 4 trước khi hàm này chạy) — ưu tiên trong ngân sách/không
+ *  cay trước, nới dần nếu rỗng, KHÔNG bao giờ chặn cứng vì lý do chất
+ *  lượng. Trả kèm 2 cờ để caller ghi cảnh báo, không tự ghi ở đây (hàm này
+ *  không biết "ngày mấy/bữa nào" để viết câu cảnh báo đầy đủ). */
+function chonMonMoPhongBua(monAnToan, khung, rangBuocGhiChu, mucTieuBua, lichSuDaDung, ngay, seedBua) {
+  const quaBuoi = monAnToan.filter((m) => monKhopBuoi(m, khung))
+  if (quaBuoi.length === 0) return { mon: null, giaVuotNganSach: false, khongTimDuocKhongCay: false, khongDungNguon: false }
+
+  // Ưu tiên đúng nguồn/bán kính dự kiến — nới nếu rỗng (KHÔNG chặn cứng).
+  // Tồn kho/dữ liệu (vd chưa khảo sát căng-tin) là chuyện chất lượng, không
+  // phải an toàn — xem ghi chú monKhopBuoi().
+  let ungVienNguon = quaBuoi.filter((m) => monKhopNguonBanKinh(m, khung))
+  let khongDungNguon = false
+  if (ungVienNguon.length === 0) {
+    khongDungNguon = true
+    ungVienNguon = quaBuoi
+  }
+
+  // Ưu tiên trong ngân sách bữa — nới dần nếu rỗng (KHÔNG chặn cứng).
+  let ungVien = ungVienNguon.filter((m) => m.gia !== null && m.gia <= khung.gia_max)
+  let giaVuotNganSach = false
+  if (ungVien.length === 0) {
+    const coGia = ungVienNguon.filter((m) => m.gia !== null)
+    giaVuotNganSach = coGia.length > 0
+    ungVien = coGia.length > 0 ? coGia : ungVienNguon
+  }
+
+  // Ưu tiên không cay nếu ghi chú "tránh cay" — nới nếu rỗng.
+  let khongTimDuocKhongCay = false
+  if (rangBuocGhiChu?.tranh_cay) {
+    const khongCay = ungVien.filter((m) => !m.cay)
+    if (khongCay.length > 0) ungVien = khongCay
+    else khongTimDuocKhongCay = true
+  }
+
+  const xepHang = ungVien
+    .map((mon) => ({ mon, diem: tinhDiem(mon, mucTieuBua.kcal, mucTieuBua.canxi, mucTieuBua.sat, mucTieuBua.kem, THAM_SO_CHUAN) }))
+    .sort((a, b) => a.diem - b.diem)
+
+  // Task 3 — chống lặp: chỉ chọn trong top, nới rộng dần nếu chống lặp loại
+  // sạch nhóm top, chọn 1 bằng băm tất định (test/lich-su/lo-trinh.md mục Task 3).
+  let k = Math.min(SO_UNG_VIEN_TOP, xepHang.length)
+  for (;;) {
+    const bang = xepHang.slice(0, k)
+    const conLai = bang.filter((x) => monChuaLapGanDay(x.mon, lichSuDaDung, ngay))
+    if (conLai.length > 0) {
+      return { mon: chonTatDinhTheoSeed(conLai, `${seedBua}|top${k}`).mon, giaVuotNganSach, khongTimDuocKhongCay, khongDungNguon }
+    }
+    if (k >= xepHang.length) break
+    k = Math.min(k + BUOC_NOI_RONG_TOP, xepHang.length)
+  }
+
+  const bangGoc = xepHang.slice(0, Math.min(SO_UNG_VIEN_TOP, xepHang.length))
+  return { mon: chonTatDinhTheoSeed(bangGoc, `${seedBua}|fallback`).mon, giaVuotNganSach, khongTimDuocKhongCay, khongDungNguon }
+}
+
 /* =========================================================================
-   TIỀN KIỂM 5 TẦNG + SINH LỘ TRÌNH — Kế hoạch dự án §4.1 (Bước 2), §5.1 (Bước 3)
+   TIỀN KIỂM + SINH LỘ TRÌNH
+   -------------------------------------------------------------------------
+   CHỈ còn 1 điều kiện chặn cứng (an toàn dị ứng — tầng 4). Mọi thứ khác
+   (ngân sách, tồn kho/lặp món, sàn canxi/sắt, ghi chú "tránh cay") LUÔN
+   được xử lý bằng cách chọn phương án tốt nhất có thể + ghi cảnh báo, đúng
+   triết lý test/ đã chốt từ lúc bàn ý tưởng ("không bao giờ báo bất khả",
+   xem test/lich-su/lo-trinh.md mục "Đã cân nhắc và bỏ").
    ========================================================================= */
-export function chayTienKiemVaSinhLoTrinh(hoSo, form, rangBuocGhiChu, opts = {}) {
-  const { boQuaSanViChat = false } = opts
+export function chayTienKiemVaSinhLoTrinh(hoSo, form, rangBuocGhiChu) {
   const { khungMoiBuoi } = xayKhungMoiBuoi(hoSo, form)
   const tatCaMon = layTatCaMonKemQuanNoiBo()
+  const soBua = form.cac_buoi_ap_dung.length
+  const tiLeBang = TI_LE_BUA[soBua]
 
-  // Tầng 4 — Loại trừ dị ứng TRƯỚC khi xét các tầng khác.
-  const monAnToan = tatCaMon.filter(
-    (m) => !m.thanh_phan_di_ung.some((d) => hoSo.di_ung.includes(d))
-  )
-
-  // Tầng 5 — Nhất quán ghi chú: nếu "tránh cay" xoá sạch ứng viên 1 buổi
-  // nào đó → chặn ngay, không cần chạy hết vòng lặp 7 ngày.
+  // Tầng 4 — loại trừ dị ứng TRƯỚC khi xét các tầng khác. CHỈ tầng này còn
+  // chặn cứng: an toàn tính mạng, không thể "cứ chọn liều một món".
+  const monAnToan = tatCaMon.filter((m) => monAnToanChoDiUng(m, hoSo.di_ung))
   for (const buoi of form.cac_buoi_ap_dung) {
     const khung = khungMoiBuoi[buoi]
-    const coCay = monAnToan.some((m) => monKhopKhung(m, khung, hoSo, {}, boQuaSanViChat))
-    const khongCay = monAnToan.some((m) => monKhopKhung(m, khung, hoSo, rangBuocGhiChu, boQuaSanViChat))
-    if (rangBuocGhiChu?.tranh_cay && coCay && !khongCay) {
+    const coMonAnToan = monAnToan.some((m) => monKhopBuoi(m, khung))
+    if (!coMonAnToan) {
       return {
-        khaThi: false, tang: 5,
-        lyDo: `Ghi chú "tránh cay" khiến không còn món nào khớp khung bữa ${TEN_BUOI[buoi].toLowerCase()}. Thử bỏ ghi chú này hoặc đổi buổi.`,
+        khaThi: false, tang: 4,
+        lyDo: `Không có món nào an toàn (theo dị ứng đã khai ở Hồ sơ) khớp buổi ${TEN_BUOI[buoi].toLowerCase()} trong dữ liệu hiện có. Hãy cập nhật lại dị ứng ở Hồ sơ, hoặc thử lại nếu chỉ là thiếu dữ liệu tạm thời.`,
       }
     }
   }
 
-  // Tầng 2 — Khả thi tồn kho: mỗi buổi cần đủ vài món khác nhau khớp khung,
-  // nếu không cả tuần phải lặp một món (vi phạm "1 món gốc ≤ 2 lần/tuần").
-  // DEMO (boQuaSanViChat): hạ ngưỡng xuống còn 1 — xem ghi chú #2b đầu file.
-  const nguongTonKho = boQuaSanViChat ? 1 : 2
-  for (const buoi of form.cac_buoi_ap_dung) {
-    const khung = khungMoiBuoi[buoi]
-    const ungVien = monAnToan.filter((m) => monKhopKhung(m, khung, hoSo, rangBuocGhiChu, boQuaSanViChat))
-    if (ungVien.length < nguongTonKho) {
-      return {
-        khaThi: false, tang: 2,
-        lyDo: `Không đủ món khác nhau quanh trường khớp khung bữa ${TEN_BUOI[buoi].toLowerCase()} với mức giá tối đa ${tien(khung.gia_max)}/bữa. Hãy nâng ngân sách tuần hoặc bớt một buổi.`,
-      }
-    }
-  }
-
-  // Bước 3 — Sinh khung: vòng lặp tham lam qua 7 ngày, mang theo "tiền còn
-  // lại" + "món gốc đã dùng" + tính lại canxi/sắt MỖI NGÀY (§5.1).
-  // ⚠ Kết quả từng ngày CHỈ dùng nội bộ để kiểm khả thi/tính tổng quan —
-  //   Giai đoạn 3 hiển thị KHUNG, KHÔNG hiển thị món cụ thể này (§2.1).
   let tienConLai = form.ngan_sach_tuan
-  const demMonGoc = new Map()
+  const lichSuDaDung = new Map() // mã món → ngày dùng gần nhất (Task 3)
   const xemTruoc7Ngay = []
+  const canhBao = []
+  const daCanhBaoNguon = new Set() // 1 cảnh báo/buổi, không lặp lại 7 lần
+  const seedGoc = `${form.ngan_sach_tuan}|${soBua}|${form.muc_dich}`
 
   for (let ngay = 1; ngay <= 7; ngay++) {
     let canxiNgay = 0
@@ -171,46 +225,53 @@ export function chayTienKiemVaSinhLoTrinh(hoSo, form, rangBuocGhiChu, opts = {})
 
     for (const buoi of form.cac_buoi_ap_dung) {
       const khung = khungMoiBuoi[buoi]
-      const ungVien = monAnToan
-        .filter((m) => monKhopKhung(m, khung, hoSo, rangBuocGhiChu, boQuaSanViChat))
-        .filter((m) => boQuaSanViChat || (demMonGoc.get(m.mon_goc_id) ?? 0) < 2)
-        .filter((m) => m.gia <= tienConLai)
-        // Sắp xếp tạm theo đạm/giá giảm dần — KHÔNG phải hàm chấm điểm
-        // trọng số cuối cùng (Kế hoạch dự án §5.3), chỉ đủ để tất định.
-        .sort((a, b) => b.dam_g / b.gia - a.dam_g / a.gia)
+      const mucTieuBua = mucTieuMotBuaTuHoSo(hoSo, tiLeBang[buoi])
+      const seedBua = `${seedGoc}|${ngay}|${buoi}`
+      const tenBuoiChu = TEN_BUOI[buoi].toLowerCase()
 
-      if (ungVien.length === 0) {
-        return {
-          khaThi: false, tang: 1,
-          lyDo: `Ngày ${ngay}: hết ngân sách hoặc hết món khả dụng cho bữa ${TEN_BUOI[buoi].toLowerCase()}. Mức ${tien(form.ngan_sach_tuan)}/tuần không đủ cho tổ hợp 7 ngày đã chọn — thử nâng ngân sách.`,
-        }
+      const { mon, giaVuotNganSach, khongTimDuocKhongCay, khongDungNguon } = chonMonMoPhongBua(
+        monAnToan, khung, rangBuocGhiChu, mucTieuBua, lichSuDaDung, ngay, seedBua,
+      )
+
+      if (!mon) {
+        // Phòng thủ — tầng 4 ở trên đã đảm bảo có ≥1 món an toàn khớp
+        // buổi này, nên nhánh này không nên xảy ra trong vận hành bình
+        // thường. Vẫn xử lý mềm thay vì để undefined rơi xuống làm hỏng
+        // phần tính canxi/sắt bên dưới.
+        canhBao.push(`Ngày ${ngay}, bữa ${tenBuoiChu}: không tìm được món phù hợp, bỏ trống bữa này.`)
+        monTrongNgay.push({ buoi, mon: null })
+        continue
       }
 
-      const monChon = ungVien[0]
-      monTrongNgay.push({ buoi, mon: monChon })
-      tienConLai -= monChon.gia
-      demMonGoc.set(monChon.mon_goc_id, (demMonGoc.get(monChon.mon_goc_id) ?? 0) + 1)
-      canxiNgay += monChon.canxi_mg
-      satNgay += monChon.sat_mg
-    }
+      monTrongNgay.push({ buoi, mon })
+      tienConLai -= mon.gia ?? 0
+      lichSuDaDung.set(mon.id, ngay)
+      canxiNgay += mon.canxi_mg
+      satNgay += mon.sat_mg
 
-    // Tầng 3 — An toàn sức khoẻ: sàn canxi/sắt THEO NGÀY (R-32).
-    if (!boQuaSanViChat) {
-      if (canxiNgay < hoSo.canxi_muc_tieu) {
-        return {
-          khaThi: false, tang: 3,
-          lyDo: `Ngày ${ngay}: tổ hợp món tốt nhất tìm được chỉ đạt ${Math.round(canxiNgay)}mg canxi/ngày, chưa tới sàn khuyến nghị ${hoSo.canxi_muc_tieu}mg. Đây KHÔNG phải vấn đề ngân sách — hệ thống hiện chỉ quản lý bữa trưa + tối nên khó đạt sàn canxi cả ngày từ 2 bữa. Vấn đề này đã được nhóm ghi nhận, chưa có quyết định cuối ở tầng thuật toán.`,
-        }
+      if (giaVuotNganSach) {
+        canhBao.push(`Ngày ${ngay}, bữa ${tenBuoiChu}: món đã chọn (${tien(mon.gia)}) vượt ngân sách dự kiến cho bữa này (${tien(khung.gia_max)}).`)
       }
-      if (satNgay < hoSo.sat_muc_tieu) {
-        return {
-          khaThi: false, tang: 3,
-          lyDo: `Ngày ${ngay}: tổ hợp món tốt nhất tìm được chỉ đạt ${satNgay.toFixed(1)}mg sắt/ngày, chưa tới sàn khuyến nghị ${hoSo.sat_muc_tieu}mg. Cùng nguyên nhân với canxi ở trên.`,
-        }
+      if (khongTimDuocKhongCay) {
+        canhBao.push(`Ngày ${ngay}, bữa ${tenBuoiChu}: chưa tìm được món không cay theo ghi chú, đã chọn món cay tốt nhất có thể.`)
+      }
+      if (khongDungNguon && !daCanhBaoNguon.has(buoi)) {
+        daCanhBaoNguon.add(buoi)
+        canhBao.push(`Bữa ${tenBuoiChu}: chưa đủ dữ liệu quán đúng nguồn dự kiến (căng-tin/quán ngoài trường), tạm dùng quán khác cho những ngày liên quan.`)
       }
     }
 
+    // ⚠ CỐ Ý không cảnh báo khi canxiNgay/satNgay dưới sàn khuyến nghị —
+    // R-32/§3.2 (xem VongTron.jsx, CLAUDE.md mục C): "KHÔNG cảnh báo, màu
+    // đỏ, hay thông điệp ở BẤT KỲ ngưỡng dinh dưỡng nào" (nghiên cứu cho
+    // thấy cảnh báo hạn mức tạo ám ảnh đồ ăn ở lứa tuổi này). Vẫn tính và
+    // giữ 2 số này trong xemTruoc7Ngay để dùng nội bộ sau này nếu cần,
+    // nhưng KHÔNG đẩy thành canhBao hiển thị cho học sinh.
     xemTruoc7Ngay.push({ thu_tu_ngay: ngay, mon: monTrongNgay, canxi: canxiNgay, sat: satNgay })
+  }
+
+  if (tienConLai < 0) {
+    canhBao.push(`Tổng chi dự kiến cả tuần (${tien(form.ngan_sach_tuan - tienConLai)}) vượt ngân sách đã đặt (${tien(form.ngan_sach_tuan)}).`)
   }
 
   return {
@@ -218,5 +279,6 @@ export function chayTienKiemVaSinhLoTrinh(hoSo, form, rangBuocGhiChu, opts = {})
     khungMoiBuoi,
     tongChiDuKien: form.ngan_sach_tuan - tienConLai,
     xemTruoc7Ngay,
+    canhBao,
   }
 }

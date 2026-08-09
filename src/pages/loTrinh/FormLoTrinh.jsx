@@ -3,19 +3,15 @@
    Theo "Kế hoạch trang Lộ trình ăn uống" §3.
    -------------------------------------------------------------------------
    §3.1: Lấy sẵn từ Hồ sơ (KHÔNG hỏi lại) — tuổi, giới, mức vận động, dị
-   ứng/kiêng, kcal & đạm mục tiêu. Chỉ hỏi: ngân sách tuần, mục đích, buổi
-   muốn hệ thống lo, ghi chú tự do.
+   ứng/kiêng, kcal & đạm mục tiêu. Chỉ hỏi: ngân sách tuần, mục đích, số
+   bữa, ghi chú tự do.
 
-   ⚠ MVP lộ trình CHỈ quản lý trưa + tối (nêu nhiều nơi: Kế hoạch dự án
-     §5.3, Dashboard §3.2) — nhưng chính §3.1 tài liệu này LẠI liệt kê
-     "sáng/chiều/tối tuỳ chọn" như thể cả 4 buổi đều chọn được. Đây là một
-     điểm chưa khớp giữa 2 tài liệu (đã nêu ở buổi rà soát trước).
-
-   Đổi 29/7 (yêu cầu riêng cho DEMO, cố ý đi khác MVP): mở khoá cả 4 buổi,
-   không khoá sáng/chiều nữa — xem thêm ghi chú "DEMO" ở lib/sinhLoTrinh.js
-   vì chọn đủ 4 buổi sẽ vét cạn rất nhanh 18 món demo hiện có (đặc biệt
-   buổi chiều chỉ có 2 món khớp), nên tầng tiền kiểm tồn kho cũng được nới
-   khi bật cờ demo bên dưới.
+   Pha 2 (07/08/2026) — số bữa quay về đúng 2 tổ hợp cố định của test/ (3
+   hoặc 4 bữa/ngày, tỉ lệ buổi cố định theo từng tổ hợp — xem
+   lib/thamSoLoTrinh.js), thay cho bản tick-tự-do-4-buổi trước đó (yêu cầu
+   riêng cho DEMO 29/7, nay bỏ). Không còn cờ "bỏ qua sàn dinh dưỡng" — từ
+   Pha 2, thuật toán LUÔN sinh được lộ trình (trừ dị ứng chặn cứng), cờ đó
+   không còn cần thiết (xem lib/sinhLoTrinh.js).
    ========================================================================= */
 
 import { useState } from 'react'
@@ -24,30 +20,22 @@ import ThongDiepAnToan from '../../components/ThongDiepAnToan.jsx'
 import Khoi from '../../components/Khoi.jsx'
 import { layHoSo, xacNhanDongY, tenNhomDiUng } from '../../data/api.js'
 import { TEN_MUC_DICH } from '../../lib/sinhLoTrinh.js'
+import { BUOI_THEO_SO_BUA } from '../../lib/thamSoLoTrinh.js'
 import { tien } from '../../lib/dinhDang.js'
 
-const BUOI_TUY_CHON = [
-  { ma: 'sang', nhan: 'Sáng' },
-  { ma: 'trua', nhan: 'Trưa' },
-  { ma: 'chieu', nhan: 'Chiều' },
-  { ma: 'toi', nhan: 'Tối' },
+const SO_BUA_TUY_CHON = [
+  { gia_tri: 3, nhan: 'Sáng · Trưa · Tối' },
+  { gia_tri: 4, nhan: 'Sáng · Trưa · Chiều · Tối' },
 ]
 
 export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
   const hoSo = layHoSo()
 
-  // DEMO 29/7 — ngân sách mặc định nâng 350k→500k và cờ "bỏ qua sàn" bật
-  // SẴN, để luồng mặc định (không sửa gì, chỉ bấm Tạo lộ trình) luôn đi
-  // hết 4 giai đoạn thành công. Xem lib/sinhLoTrinh.js ghi chú #2b: với
-  // hồ sơ demo (kcal_muc_tieu 2500), sàn kcal_min bữa trưa (744) CAO HƠN
-  // món căng-tin đắt calo nhất hiện có (720) — nếu không bật cờ này, MỌI
-  // lộ trình mới đều bị chặn ở Giai đoạn 2 bất kể ngân sách.
   const [nganSachTuan, datNganSachTuan] = useState(500000)
   const [mucDich, datMucDich] = useState('du_chat_trong_ngan_sach')
-  const [buoiApDung, datBuoiApDung] = useState(['trua', 'toi'])
+  const [soBua, datSoBua] = useState(3)
   const [ghiChu, datGhiChu] = useState('')
   const [daTickDongY, datDaTickDongY] = useState(false)
-  const [boQuaSanViChat, datBoQuaSanViChat] = useState(true)
   const [loiThieu, datLoiThieu] = useState('')
 
   // §3.6 — nếu đang có lộ trình chạy, nút bị khoá.
@@ -62,21 +50,9 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
     )
   }
 
-  const doiBuoi = (ma) => {
-    if (buoiApDung.includes(ma)) {
-      datBuoiApDung(buoiApDung.filter((b) => b !== ma))
-    } else {
-      datBuoiApDung([...buoiApDung, ma])
-    }
-  }
-
   const guiForm = () => {
     if (!nganSachTuan || nganSachTuan <= 0) {
       datLoiThieu('Nhập ngân sách tuần trước đã.')
-      return
-    }
-    if (buoiApDung.length === 0) {
-      datLoiThieu('Chọn ít nhất một buổi để hệ thống lo.')
       return
     }
     if (!daTickDongY) {
@@ -88,9 +64,8 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
     onTao({
       ngan_sach_tuan: Number(nganSachTuan),
       muc_dich: mucDich,
-      cac_buoi_ap_dung: buoiApDung,
+      cac_buoi_ap_dung: BUOI_THEO_SO_BUA[soBua],
       ghi_chu: ghiChu,
-      boQuaSanViChat,
     })
   }
 
@@ -106,7 +81,7 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
           </p>
           <p className="chu-nho chu-nhat">
             Mục tiêu ngày: {hoSo.kcal_muc_tieu} kcal · {hoSo.dam_muc_tieu}g đạm ·{' '}
-            {hoSo.canxi_muc_tieu}mg canxi · {hoSo.sat_muc_tieu}mg sắt
+            {hoSo.canxi_muc_tieu}mg canxi · {hoSo.sat_muc_tieu}mg sắt · {hoSo.kem_muc_tieu}mg kẽm
           </p>
         </div>
 
@@ -130,16 +105,17 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
         </label>
 
         <div className="truong-form">
-          <span className="truong-form__nhan">Buổi muốn hệ thống lo</span>
+          <span className="truong-form__nhan">Số bữa/ngày</span>
           <div className="chon-buoi">
-            {BUOI_TUY_CHON.map((b) => (
-              <label key={b.ma} className="chon-buoi__muc">
+            {SO_BUA_TUY_CHON.map((s) => (
+              <label key={s.gia_tri} className="chon-buoi__muc">
                 <input
-                  type="checkbox"
-                  checked={buoiApDung.includes(b.ma)}
-                  onChange={() => doiBuoi(b.ma)}
+                  type="radio"
+                  name="so-bua"
+                  checked={soBua === s.gia_tri}
+                  onChange={() => datSoBua(s.gia_tri)}
                 />
-                <span>{b.nhan}</span>
+                <span>{s.nhan}</span>
               </label>
             ))}
           </div>
@@ -162,22 +138,6 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
         <button className="nut nut--chinh nut--rong" onClick={guiForm} type="button">
           Tạo lộ trình
         </button>
-
-        {/* ⚠ Công cụ dựng giao diện, KHÔNG PHẢI tính năng — xem lib/sinhLoTrinh.js.
-            Mặc định BẬT SẴN 29/7 (đổi từ tắt) để đảm bảo tạo lộ trình luôn
-            thành công lúc demo. Khi TẮT, sàn kcal/dam/canxi/sắt mỗi bữa &
-            mỗi ngày (R-32) và giới hạn tồn kho món (tối đa 2 lần/tuần mỗi
-            món gốc) chạy THẬT theo đúng tài liệu — với 18 món demo hiện có,
-            gần như mọi lộ trình sẽ báo "bất khả" (xem ghi chú #2b). Vẫn để
-            người xem tự tắt thử nếu muốn thấy các màn "Không tạo được". */}
-        <label className="bo-qua-san-demo">
-          <input
-            type="checkbox"
-            checked={boQuaSanViChat}
-            onChange={(e) => datBoQuaSanViChat(e.target.checked)}
-          />
-          <span>🛠 Bỏ qua sàn dinh dưỡng + giới hạn tồn kho món (chỉ để xem thử giao diện — xem lib/sinhLoTrinh.js)</span>
-        </label>
       </Khoi>
 
       <ThongDiepAnToan />

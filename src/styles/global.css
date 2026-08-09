@@ -145,6 +145,12 @@ img { display: block; max-width: 100%; }
 
 .nut[disabled] { opacity: .5; cursor: not-allowed; }
 
+/* Chip nhỏ — quick-reply kiểu Messenger bán hàng/Shopee (Dashboard, Gợi ý nhanh). */
+.nut--chip {
+  padding: 8px var(--kc-4);
+  font-size: var(--cd-phu);
+}
+
 /* --- Tiện ích -------------------------------------------------------- */
 
 .hang { display: flex; align-items: center; gap: var(--kc-2); }

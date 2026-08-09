@@ -1,14 +1,13 @@
 /* =========================================================================
-   TRANG ĐĂNG NHẬP (DEMO)
+   TRANG ĐĂNG NHẬP
    -------------------------------------------------------------------------
-   Yêu cầu riêng — KHÔNG có trong tài liệu thiết kế chính thức nào. Xem ghi
-   chú đầy đủ ở lib/demoAuth.js: đây là cổng demo, không xác thực thật.
-   Gõ gì cũng qua được (chỉ cần không bỏ trống) rồi vào thẳng giao diện chính.
+   Yêu cầu riêng — KHÔNG có trong tài liệu thiết kế chính thức nào. Từ
+   08/08/2026 xác thực THẬT qua Supabase Auth (xem khoXacThuc.js).
    ========================================================================= */
 
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { datDaQuaDangNhapDemo } from '../lib/demoAuth.js'
+import { dangNhapThat } from '../data/supabase/khoXacThuc.js'
 
 export default function DangNhap() {
   const navigate = useNavigate()
@@ -16,17 +15,18 @@ export default function DangNhap() {
   const [tenTaiKhoan, datTenTaiKhoan] = useState('')
   const [matKhau, datMatKhau] = useState('')
   const [loi, datLoi] = useState('')
+  const [dangGui, datDangGui] = useState(false)
 
-  const guiDangNhap = (e) => {
+  const guiDangNhap = async (e) => {
     e.preventDefault()
     if (!tenTaiKhoan.trim() || !matKhau) {
       datLoi('Nhập đủ tên tài khoản và mật khẩu.')
       return
     }
     datLoi('')
-    // DEMO — không kiểm tra đúng/sai với tài khoản nào, chỉ đánh dấu đã
-    // "qua cổng" rồi vào thẳng app.
-    datDaQuaDangNhapDemo()
+    datDangGui(true)
+    const kq = await dangNhapThat(tenTaiKhoan, matKhau)
+    if (!kq.ok) { datDangGui(false); datLoi(kq.loi); return }
     navigate('/')
   }
 
@@ -36,7 +36,7 @@ export default function DangNhap() {
         <div className="khoi__than">
           <p className="trang-xac-thuc__logo">Ăn đủ chất</p>
           <h1 className="trang-xac-thuc__tieu-de">Đăng nhập</h1>
-          <p className="chu-nho chu-nhat">Bản demo — thông tin không được lưu lại.</p>
+          <p className="chu-nho chu-nhat">Chưa có đường khôi phục nếu quên mật khẩu.</p>
 
           <form className="trang-xac-thuc__form" onSubmit={guiDangNhap}>
             <label className="truong-form">
@@ -59,8 +59,8 @@ export default function DangNhap() {
 
             {loi && <p className="loi-form">{loi}</p>}
 
-            <button className="nut nut--chinh nut--rong" type="submit">
-              Đăng nhập
+            <button className="nut nut--chinh nut--rong" type="submit" disabled={dangGui}>
+              {dangGui ? 'Đang đăng nhập…' : 'Đăng nhập'}
             </button>
           </form>
 

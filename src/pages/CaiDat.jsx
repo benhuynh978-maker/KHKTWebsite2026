@@ -6,7 +6,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Khoi from '../components/Khoi.jsx'
-import { layHoSo, xoaToanBoDuLieu } from '../data/api.js'
+import { layHoSo, xoaToanBoDuLieu, guiPhanHoiHoTro } from '../data/api.js'
+import { dangXuatThat } from '../data/supabase/khoXacThuc.js'
 
 export default function CaiDat() {
   const hoSo = layHoSo()
@@ -14,7 +15,7 @@ export default function CaiDat() {
 
   return (
     <>
-      <KhoiDangXuat dieuHuong={dieuHuong} />
+      <KhoiDangXuat />
       <KhoiDinhDanh maSo={hoSo.ma_6_so} />
       <KhoiQuyenRiengTu hoSo={hoSo} dieuHuong={dieuHuong} />
       <KhoiLienHeHoTro />
@@ -24,21 +25,38 @@ export default function CaiDat() {
 
 /* --- §3.1 Đăng xuất ---------------------------------------------------- */
 
-function KhoiDangXuat({ dieuHuong }) {
-  const [daBam, datDaBam] = useState(false)
+function KhoiDangXuat() {
+  const [dangXuat, datDangXuat] = useState(false)
 
-  // ⚠ Bản demo chưa có màn hình nhập mã 6 số / đăng nhập thật (§3.1: "xoá
-  //   phiên đăng nhập hiện tại, quay về màn hình nhập mã 6 số"). Nút này
-  //   chỉ mô phỏng — không có phiên đăng nhập thật nào để xoá.
-  const dangXuat = () => {
-    datDaBam(true)
-    setTimeout(() => dieuHuong('/'), 700)
+  // Đăng xuất thật (Supabase Auth) rồi TẢI LẠI CỨNG cả trang — không dùng
+  // navigate() của React Router: dữ liệu món/quán/hồ sơ/lộ trình chỉ nạp
+  // MỘT LẦN cho cả phiên JS (CongDuLieu.jsx, cờ daTai), điều hướng SPA sẽ
+  // giữ nguyên dữ liệu tài khoản cũ đè lên tài khoản đăng nhập kế tiếp.
+  //
+  // ⚠ Phát hiện + đào sâu 09/08/2026: dù đã `await`, request POST
+  // /auth/v1/logout đôi khi vẫn bị trình duyệt báo net::ERR_ABORTED (thêm
+  // delay 150ms trước khi điều hướng KHÔNG loại bỏ được hiện tượng này —
+  // đã thử, vẫn còn). Kiểm tra trực tiếp mức độ ảnh hưởng thật bằng cách
+  // gọi thẳng API Supabase sau khi "đăng xuất": access token cũ tạm thời
+  // vẫn dùng được — ĐÚNG hành vi chuẩn của JWT (tự hết hạn theo thời gian,
+  // không phải do đăng xuất sai), không phải lỗ hổng. Phép thử thật sự là
+  // refresh token — dùng refresh token cũ xin access token mới sau khi
+  // đăng xuất bị Supabase từ chối thẳng (400 refresh_token_not_found) →
+  // xác nhận phiên ĐÃ bị thu hồi thật phía server. Kết luận: ERR_ABORTED
+  // chỉ là cách trình duyệt báo cáo network lúc unload trang, không phải
+  // lỗi bảo mật hay lỗi logic — giữ delay 150ms vì vô hại, không phải vì
+  // cần thiết để sửa gì.
+  const guiDangXuat = async () => {
+    datDangXuat(true)
+    await dangXuatThat()
+    await new Promise((r) => setTimeout(r, 150))
+    window.location.href = '/dang-nhap'
   }
 
   return (
     <Khoi tieuDe="Tài khoản">
-      <button className="nut nut--rong" onClick={dangXuat} type="button" disabled={daBam}>
-        {daBam ? 'Đang đăng xuất… (demo)' : 'Đăng xuất'}
+      <button className="nut nut--rong" onClick={guiDangXuat} type="button" disabled={dangXuat}>
+        {dangXuat ? 'Đang đăng xuất…' : 'Đăng xuất'}
       </button>
     </Khoi>
   )
@@ -108,7 +126,7 @@ function KhoiQuyenRiengTu({ hoSo, dieuHuong }) {
 /* --- §3.4 Liên hệ hỗ trợ -------------------------------------------------- */
 
 const NHOM_A = [
-  { tinh_huong: 'Không đăng nhập được', huong_dan: 'Kiểm tra lại mã 6 số; nếu vẫn lỗi, gửi phản hồi bên dưới.' },
+  { tinh_huong: 'Không đăng nhập được', huong_dan: 'Kiểm tra lại tên tài khoản/mật khẩu đã gõ đúng; quên mật khẩu thì cần đăng ký tài khoản mới (chưa có cách khôi phục).' },
   { tinh_huong: 'Lộ trình báo "không tạo được"', huong_dan: 'Ngân sách chưa đủ sàn dinh dưỡng tối thiểu — hệ thống đã báo mức cần thiết, nâng ngân sách hoặc giảm buổi.' },
   { tinh_huong: 'Món gợi ý không hợp khẩu vị', huong_dan: 'Bấm "Món khác" để xem thêm, hoặc "Ăn ngoài lộ trình" nếu muốn ăn món khác hẳn.' },
   { tinh_huong: 'Dashboard không hiện vòng tròn đạm/năng lượng', huong_dan: 'Bình thường — chỉ hiện khi đang có lộ trình chạy; chưa tạo lộ trình thì trống.' },
@@ -131,8 +149,7 @@ function KhoiLienHeHoTro() {
 
   const gui = () => {
     if (!moTa.trim()) return
-    // ⚠ Chưa nối backend — bản demo chỉ hiện trạng thái đã gửi, chưa thật
-    //   sự lưu/chuyển tiếp phản hồi đi đâu.
+    guiPhanHoiHoTro(moTa.trim(), maSoTuyChon)
     datDaGui(true)
     datMoTa('')
   }

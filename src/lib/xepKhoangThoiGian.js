@@ -26,7 +26,7 @@
    lệch khoảng "để lại quyết định khi dựng thật") — cần bạn xác nhận.
 
    Trả về mảng bucket { nhan, batDau, ketThuc, chiPhi, kcal, dam, glucid,
-   lipid, canxi, sat } — batDau/ketThuc giữ lại (không chỉ dùng nội bộ) để
+   lipid, canxi, sat, kem } — batDau/ketThuc giữ lại (không chỉ dùng nội bộ) để
    nơi gọi (src/data/api.js) có thể tự kiểm tra thêm, ví dụ "khoảng này có
    lộ trình nào chạy không" (Phần 3.4).
    ========================================================================= */
@@ -84,7 +84,7 @@ function soNgayLamMauSo(batDau, ketThuc) {
   return Math.max(1, Math.round((gioiHan - batDau) / MOT_NGAY_MS))
 }
 
-const CAC_CHI_SO_TRUNG_BINH_NGAY = ['kcal', 'dam', 'glucid', 'lipid', 'canxi', 'sat']
+const CAC_CHI_SO_TRUNG_BINH_NGAY = ['kcal', 'dam', 'glucid', 'lipid', 'canxi', 'sat', 'kem']
 
 function gomMotKhoang(khoang, danhSach) {
   const trongKhoang = danhSach.filter((d) => {

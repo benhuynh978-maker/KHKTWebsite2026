@@ -16,29 +16,41 @@
    phải mã 6 số hay tên thật — xem thêm mock/binhLuan.js.
    ========================================================================= */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { layBinhLuan, guiBinhLuanMon, layDanhGia, guiDanhGia } from '../data/api.js'
 import { ngayGio } from '../lib/dinhDang.js'
 import TrangThaiRong from './TrangThaiRong.jsx'
 import ChonSao from './ChonSao.jsx'
 
 export default function BangBinhLuan({ mon, onDong }) {
-  const [dsBinhLuan, datDsBinhLuan] = useState(() => layBinhLuan(mon.id))
-  const [soSaoChon, datSoSaoChon] = useState(() => layDanhGia(mon.id).sao_cua_toi ?? 0)
+  const [dsBinhLuan, datDsBinhLuan] = useState([])
+  const [soSaoChon, datSoSaoChon] = useState(0)
   const [noiDung, datNoiDung] = useState('')
+  const [dangTai, datDangTai] = useState(true)
+
+  useEffect(() => {
+    let huy = false
+    Promise.all([layBinhLuan(mon.id), layDanhGia(mon.id)]).then(([ds, dg]) => {
+      if (huy) return
+      datDsBinhLuan(ds)
+      datSoSaoChon(dg.sao_cua_toi ?? 0)
+      datDangTai(false)
+    })
+    return () => { huy = true }
+  }, [mon.id])
 
   const coTheGui = soSaoChon > 0 || noiDung.trim() !== ''
 
-  const gui = (e) => {
+  const gui = async (e) => {
     e.preventDefault()
     if (!coTheGui) return
 
-    if (soSaoChon > 0) guiDanhGia(mon.id, soSaoChon)
+    if (soSaoChon > 0) await guiDanhGia(mon.id, soSaoChon)
 
     const nd = noiDung.trim()
     if (nd) {
-      guiBinhLuanMon(mon.id, nd)
-      datDsBinhLuan(layBinhLuan(mon.id))
+      await guiBinhLuanMon(mon.id, nd)
+      datDsBinhLuan(await layBinhLuan(mon.id))
       datNoiDung('')
     }
   }
@@ -54,7 +66,9 @@ export default function BangBinhLuan({ mon, onDong }) {
         </div>
 
         <div className="binh-luan__ds">
-          {dsBinhLuan.length === 0 ? (
+          {dangTai ? (
+            <TrangThaiRong>Đang tải bình luận…</TrangThaiRong>
+          ) : dsBinhLuan.length === 0 ? (
             <TrangThaiRong>Chưa có bình luận nào — hãy là người đầu tiên!</TrangThaiRong>
           ) : (
             dsBinhLuan.map((b) => (

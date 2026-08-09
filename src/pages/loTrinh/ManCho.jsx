@@ -10,6 +10,11 @@
    hướng dẫn liên hệ bác sỹ; phần còn lại (ngân sách/mục đích/buổi) vẫn xử
    lý bình thường nếu không liên quan — nên cảnh báo R-27 hiển thị SONG
    SONG với kết quả tiền kiểm, không thay thế nó.
+
+   Pha 2 (07/08/2026) — chỉ còn 1 tầng có thể "bất khả" (dị ứng, an toàn
+   tính mạng). Ngân sách/tồn kho/sàn dinh dưỡng/ghi chú không còn chặn ở
+   đây nữa — luôn tạo được lộ trình, những điểm chưa đạt tuyệt đối hiện ở
+   Giai đoạn 3 dưới dạng cảnh báo (xem lib/sinhLoTrinh.js, XemLoTrinh.jsx).
    ========================================================================= */
 
 import { useEffect, useState } from 'react'
@@ -19,25 +24,13 @@ import { coDauHieuBenhLy, trichRangBuocGhiChu } from '../../lib/anToanGhiChu.js'
 import { tien } from '../../lib/dinhDang.js'
 
 const TEN_TANG = {
-  1: 'Khả thi ngân sách',
-  2: 'Khả thi tồn kho',
-  3: 'An toàn sức khoẻ',
-  4: 'Loại trừ cá nhân',
-  5: 'Nhất quán ghi chú',
+  4: 'Loại trừ cá nhân (an toàn dị ứng)',
 }
 
-export default function ManCho({ form, onKhaThi, onBatKha, onQuayLai, onHuy, ketQuaEp }) {
+export default function ManCho({ form, onKhaThi, onBatKha, onQuayLai, onHuy }) {
   const [ketQua, datKetQua] = useState(null) // null = đang chạy
 
   useEffect(() => {
-    // DEMO 29/7 — Bảng thử nghiệm Lộ trình ép sẵn một kết quả (khả thi
-    // hoặc bất khả ở tầng cụ thể) để xem trước giao diện, bỏ qua tiền
-    // kiểm thật. Vẫn giữ độ trễ giả lập cho giống luồng thật.
-    if (ketQuaEp) {
-      const hen = setTimeout(() => datKetQua({ ...ketQuaEp, canhBaoGhiChu: false, formDayDu: form }), 500)
-      return () => clearTimeout(hen)
-    }
-
     const coBenhLy = coDauHieuBenhLy(form.ghi_chu)
     const rangBuocGhiChu = coBenhLy ? {} : trichRangBuocGhiChu(form.ghi_chu)
     // Gắn ràng buộc đã trích vào chính đối tượng form và mang theo tới tận
@@ -47,9 +40,7 @@ export default function ManCho({ form, onKhaThi, onBatKha, onQuayLai, onHuy, ket
     const formDayDu = { ...form, rang_buoc_ghi_chu: rangBuocGhiChu }
 
     const hen = setTimeout(() => {
-      const kq = chayTienKiemLoTrinh(formDayDu, rangBuocGhiChu, {
-        boQuaSanViChat: form.boQuaSanViChat,
-      })
+      const kq = chayTienKiemLoTrinh(formDayDu, rangBuocGhiChu)
       datKetQua({ ...kq, canhBaoGhiChu: coBenhLy, formDayDu })
     }, 900)
 
@@ -66,7 +57,7 @@ export default function ManCho({ form, onKhaThi, onBatKha, onQuayLai, onHuy, ket
   if (!ketQua) {
     return (
       <Khoi tieuDe="Đang tạo lộ trình…" phu="Giai đoạn 2/4 — Kiểm tra khả thi">
-        <p className="chu-nhat">Đang kiểm tra ngân sách, tồn kho món, sàn dinh dưỡng, dị ứng và ghi chú của bạn...</p>
+        <p className="chu-nhat">Đang kiểm tra dị ứng và tạo lộ trình phù hợp nhất với ngân sách, mục đích và ghi chú của bạn...</p>
       </Khoi>
     )
   }

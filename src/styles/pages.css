@@ -239,23 +239,7 @@
 
 /* --- Dashboard · Khối 5: Gợi ý nhanh ---------------------------------- */
 
-.nut-goi-y {
-  display: flex;
-  gap: var(--kc-2);
-  flex-wrap: wrap;
-}
-.nut-goi-y .nut { flex: 1; min-width: 96px; }
-
 .goi-y__dan-loi { margin-top: var(--kc-3); text-align: center; }
-
-/* Chat demo (§ ghi chú DEMO trong Dashboard.jsx) — chưa có xử lý ngôn ngữ
-   thật, chỉ minh hoạ luồng "gõ → đang xử lý → có kết quả". */
-.chat-goi-y {
-  display: flex;
-  flex-direction: column;
-  gap: var(--kc-3);
-  margin-top: var(--kc-4);
-}
 
 .chat-bong {
   max-width: 88%;
@@ -280,13 +264,6 @@
   max-width: 100%;
 }
 
-.chat-dang-xu-ly {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--kc-2);
-  color: var(--chu-nhat);
-}
-
 .chat-xoay {
   display: inline-block;
   animation: chat-quay 0.9s linear infinite;
@@ -296,24 +273,6 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
-
-.chat-nhap {
-  display: flex;
-  gap: var(--kc-2);
-  margin-top: var(--kc-4);
-}
-
-.chat-nhap__o {
-  flex: 1;
-  min-width: 0;
-  padding: 10px var(--kc-4);
-  border-radius: var(--bo-tron);
-  border: 1px solid var(--vien-dam);
-  background: var(--be-mat);
-  color: var(--chu);
-  font-size: var(--cd-thuong);
-}
-.chat-nhap__o:focus { outline: 2px solid var(--nhan); outline-offset: 1px; }
 
 /* --- Quán ăn gần đây · mỗi khối quán ----------------------------------- */
 
@@ -367,7 +326,6 @@
   font-size: var(--cd-phu);
   cursor: pointer;
 }
-.chon-buoi__muc--khoa { color: var(--chu-mo); cursor: not-allowed; }
 .chon-buoi__muc input { accent-color: var(--nhan); }
 
 .loi-form {
@@ -377,18 +335,6 @@
   padding: var(--kc-2) var(--kc-3);
   font-size: var(--cd-phu);
   margin-bottom: var(--kc-3);
-}
-
-.bo-qua-san-demo {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--kc-2);
-  margin-top: var(--kc-4);
-  padding-top: var(--kc-3);
-  border-top: 1px dashed var(--vien-dam);
-  font-size: var(--cd-nho);
-  color: var(--chu-mo);
-  cursor: pointer;
 }
 
 /* --- Giai đoạn 2: Màn chờ ------------------------------------------------ */
@@ -424,6 +370,23 @@
   flex-direction: column;
   gap: 4px;
   font-size: var(--cd-phu);
+}
+
+/* Trung tính CỐ Ý (không đỏ, không icon cảnh báo) — nội dung ở đây chỉ là
+   ngân sách/sở thích (tránh cay), KHÔNG BAO GIỜ là ngưỡng dinh dưỡng (R-32,
+   xem ghi chú "CỐ Ý không cảnh báo" trong lib/sinhLoTrinh.js). */
+.canh-bao-lo-trinh {
+  background: var(--be-mat-chim);
+  border-radius: var(--bo-vua);
+  padding: var(--kc-3);
+  margin-bottom: var(--kc-4);
+}
+.danh-sach-canh-bao {
+  margin: 6px 0 0;
+  padding-left: 1.2em;
+  font-size: var(--cd-phu);
+  color: var(--chu-nhat);
+  line-height: 1.6;
 }
 
 .danh-sach-ngay {
@@ -693,8 +656,6 @@
   background: var(--nhan-phu);
   border-color: var(--nhan-phu);
 }
-
-.phan-tich__khong-moc { margin-top: var(--kc-3); }
 
 /* --- Đăng ký / Đăng nhập (demo) ---------------------------------------- */
 

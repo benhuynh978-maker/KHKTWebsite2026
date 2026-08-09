@@ -26,6 +26,7 @@ import TrangThaiRong from '../components/TrangThaiRong.jsx'
 import { layTatCaQuanKemMon, layHoSo } from '../data/api.js'
 import { xaoTron } from '../lib/xepThuTu.js'
 import { khoangCach, boDauChu, TEN_NGUON } from '../lib/dinhDang.js'
+import { monAnToanChoDiUng } from '../lib/diUng.js'
 
 export default function QuanAnGanDay() {
   const hoSo = layHoSo()
@@ -60,9 +61,7 @@ export default function QuanAnGanDay() {
       .map((q) => ({
         ...q,
         mon: q.mon.filter((m) => {
-          if (dsDiUngCanLoc.length > 0 && m.thanh_phan_di_ung.some((d) => dsDiUngCanLoc.includes(d))) {
-            return false
-          }
+          if (!monAnToanChoDiUng(m, dsDiUngCanLoc)) return false
           if (locBuoi !== 'tat_ca' && !m.buoi.includes(locBuoi)) return false
           return true
         }),
@@ -128,10 +127,13 @@ export default function QuanAnGanDay() {
             tieuDe={q.ten_quan}
             phu={`${TEN_NGUON[q.loai_hinh]} · ${khoangCach(q.khoang_cach_m)}`}
           >
-            <p className="chu-nho chu-nhat khoi-quan__thong-tin">
-              {q.dia_chi} · {q.khoang_gio_hoat_dong} · {q.ngay_ban_va_nghi}
-              {q.so_dien_thoai && <> · 📞 {q.so_dien_thoai}</>}
-            </p>
+            {(() => {
+              const dong = [q.dia_chi, q.khoang_gio_hoat_dong, q.ngay_ban_va_nghi]
+                .filter(Boolean)
+                .concat(q.so_dien_thoai ? [`📞 ${q.so_dien_thoai}`] : [])
+                .join(' · ')
+              return dong && <p className="chu-nho chu-nhat khoi-quan__thong-tin">{dong}</p>
+            })()}
             <div className="dai-ngang">
               {q.mon.map((m) => (
                 <TheMon key={m.id} mon={{ ...m, quan: q }} onChon={datMonDangXem} />

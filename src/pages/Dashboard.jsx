@@ -16,9 +16,13 @@
 
    Thứ tự hiển thị lấy theo §2.1 (đề xuất mặc định, tài liệu ghi là "chưa
    được xác nhận riêng" — xem Phần 11 điểm chưa chốt).
+
+   Đổi 09/08/2026 (yêu cầu riêng): Khối 5 (Gợi ý nhanh) đưa lên ĐẦU TIÊN,
+   khác thứ tự §2.1 — số "Khối N" trong comment mỗi hàm vẫn giữ theo tài
+   liệu gốc, không phải thứ tự hiển thị thật.
    ========================================================================= */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import Khoi from '../components/Khoi.jsx'
@@ -29,21 +33,18 @@ import MienTru from '../components/MienTru.jsx'
 import ThongDiepAnToan from '../components/ThongDiepAnToan.jsx'
 import NhanTrangThai from '../components/NhanTrangThai.jsx'
 import TrangThaiRong from '../components/TrangThaiRong.jsx'
-import BangThuNghiem from '../components/BangThuNghiem.jsx'
 import ModalMon from '../components/ModalMon.jsx'
+import KhoiGoiYNhanh from '../components/KhoiGoiYNhanh.jsx'
 
 import {
   layLoTrinhDangChay, layMonHomNay, layHoSo, layTomTatDinhDuongHomNay,
-  layDeXuatNoiBat, layQuanGoiY, layChiPhi7NgayRutGon, goiYNhanh,
+  layDeXuatNoiBat, layQuanGoiY, layChiPhi7NgayRutGon,
 } from '../data/api.js'
 import { tien, khoangCach, TEN_BUOI } from '../lib/dinhDang.js'
 
 export default function Dashboard() {
-  // Chỉ dùng để vẽ lại khi đổi kịch bản ở bảng thử nghiệm — sẽ gỡ cùng nó.
-  const [lanVe, datLanVe] = useState(0)
-
-  // DEMO 29/7 — MỘT modal dùng chung cho MỌI thẻ món trên Dashboard (Khối
-  // 1/4/5), giống hệt cơ chế "bấm thẻ món → bảng nổi chi tiết" ở trang
+  // MỘT modal dùng chung cho MỌI thẻ món trên Dashboard (Khối 1/4/5),
+  // giống hệt cơ chế "bấm thẻ món → bảng nổi chi tiết" ở trang
   // "Ăn gì hôm nay" (ModalMon.jsx) — không định nghĩa lại.
   const [monDangXem, datMonDangXem] = useState(null)
 
@@ -51,7 +52,8 @@ export default function Dashboard() {
 
   return (
     <>
-      <BangThuNghiem onDoi={() => datLanVe(lanVe + 1)} />
+      {/* ---- KHỐI 5 — GỢI Ý NHANH (đưa lên đầu, xem ghi chú đầu file) --- */}
+      <KhoiGoiYNhanh onChonMon={datMonDangXem} />
 
       {/* ---- KHỐI 1 — LỘ TRÌNH -------------------------------------------
           Khối DUY NHẤT có điều kiện hiện/ẩn toàn phần (§3):
@@ -67,9 +69,6 @@ export default function Dashboard() {
 
       {/* ---- KHỐI 3 — QUÁN ĂN GỢI Ý ------------------------------------ */}
       <KhoiQuanGoiY />
-
-      {/* ---- KHỐI 5 — GỢI Ý NHANH -------------------------------------- */}
-      <KhoiGoiYNhanh onChonMon={datMonDangXem} />
 
       {/* R-31 — trang hiển thị dữ liệu dinh dưỡng cá nhân (§1.3) */}
       <MienTru />
@@ -116,6 +115,18 @@ function MonHomNay({ onChonMon }) {
 
   // Đã ghi nhận bữa hôm nay → hiện TRẠNG THÁI XÁC NHẬN, không phải gợi ý nữa.
   if (kq.tinh_huong === 'da_ghi_nhan') {
+    // mon_id đã ghi nhận có thể không còn tra được (món đổi/xoá khỏi Khu
+    // vực 4 sau khi ghi nhận) — không suy đoán, hiện trạng thái trung tính
+    // thay vì crash (cùng nguyên tắc null-guard đã dùng ở nhánh chưa ghi
+    // nhận bên dưới).
+    if (!kq.mon) {
+      return (
+        <div className="mon-hom-nay mon-hom-nay--da-ghi">
+          <p className="chu-nho chu-nhat">Đã ghi nhận bữa {TEN_BUOI[kq.buoi]?.toLowerCase()} hôm nay.</p>
+          <NhanTrangThai loai="trong_khung" />
+        </div>
+      )
+    }
     return (
       <TheMonBuoiHomNay
         mon={kq.mon}
@@ -300,7 +311,15 @@ function KhoiPhanTich() {
    ========================================================================= */
 
 function KhoiMonDeXuat({ onChonMon }) {
-  const ds = layDeXuatNoiBat(5)
+  const [ds, datDs] = useState([])
+
+  // Đề xuất nổi bật đọc bảng Supabase ẩn danh thật (ASYNC từ 05/08/2026) —
+  // xem ghi chú ở api.js layDeXuatNoiBat.
+  useEffect(() => {
+    let huy = false
+    layDeXuatNoiBat(5).then((kq) => { if (!huy) datDs(kq) })
+    return () => { huy = true }
+  }, [])
 
   return (
     <Khoi
@@ -355,107 +374,7 @@ function KhoiQuanGoiY() {
    Không có trang "Gợi ý một bữa" riêng trong menu — cơ chế này LUÔN là
    một khối trên Dashboard.
 
-   ⚠ DEMO 29/7: dựng giao diện dạng CHAT thay cho 3 nút khuôn mẫu cố định,
-   theo yêu cầu — học sinh gõ tự do thay vì chỉ chọn sẵn. CHƯA CÓ xử lý
-   ngôn ngữ thật: gõ gì cũng chỉ tạm trả về cùng một gợi ý mẫu (hàm chấm
-   điểm "rẻ nhất" có sẵn), qua một độ trễ giả lập để MINH HOẠ luồng
-   "đang xử lý → có kết quả". Ba nút khuôn mẫu cũ vẫn giữ, chỉ đổi cách
-   hiển thị kết quả thành một tin nhắn trong đoạn chat thay vì hiện thẳng
-   bên dưới — vẫn dùng ĐÚNG hàm goiYNhanh() có sẵn khi bấm nút (không giả).
-   Khi dựng tầng hiểu ngôn ngữ thật (sau 31/8), nhớ việc đã ghi ở §11: phải
-   sửa câu "đây là chỗ DUY NHẤT dùng LLM" trong tài liệu Kế hoạch trang lộ
-   trình thành "một trong hai chỗ dùng LLM".
+   Từ 07/08/2026 (Pha 1): chat AI THẬT (Gemini, port từ test/) — tách ra
+   `components/KhoiGoiYNhanh.jsx`, xem file đó + NHAT-KY-AI.md "Pha 1" để
+   biết chi tiết. Bản DEMO cũ (setTimeout + goiYNhanh() cố định) đã xoá.
    ========================================================================= */
-
-const NUT_GOI_Y = [
-  { ma: 're_nhat',   nhan: 'Rẻ nhất' },
-  { ma: 'nhieu_dam', nhan: 'Nhiều đạm' },
-  { ma: 'gan_nhat',  nhan: 'Gần nhất' },
-]
-
-function KhoiGoiYNhanh({ onChonMon }) {
-  const [tinNhan, datTinNhan] = useState([])
-  const [dangGo, datDangGo] = useState('')
-
-  const guiYeuCau = (noiDungHienThi, ma) => {
-    const idAi = `ai-${Date.now()}`
-    datTinNhan((ds) => [
-      ...ds,
-      { id: `nd-${Date.now()}`, vaiTro: 'nguoi_dung', noiDung: noiDungHienThi },
-      { id: idAi, vaiTro: 'ai', dangXuLy: true },
-    ])
-    datDangGo('')
-
-    // Độ trễ giả lập + kết quả mẫu — xem ghi chú DEMO ở đầu file.
-    setTimeout(() => {
-      const ketQua = goiYNhanh(ma ?? 're_nhat')
-      datTinNhan((ds) => ds.map((t) => (t.id === idAi ? { ...t, dangXuLy: false, ketQua } : t)))
-    }, 900 + Math.random() * 500)
-  }
-
-  const guiTuDo = (e) => {
-    e.preventDefault()
-    const vanBan = dangGo.trim()
-    if (!vanBan) return
-    guiYeuCau(vanBan, null)
-  }
-
-  return (
-    <Khoi tieuDe="Gợi ý nhanh" phu="Chat để tìm nhanh một bữa, không cần lộ trình">
-      <div className="nut-goi-y">
-        {NUT_GOI_Y.map((n) => (
-          <button
-            key={n.ma}
-            type="button"
-            className="nut"
-            onClick={() => guiYeuCau(n.nhan, n.ma)}
-          >
-            {n.nhan}
-          </button>
-        ))}
-      </div>
-
-      {tinNhan.length > 0 && (
-        <div className="chat-goi-y">
-          {tinNhan.map((t) =>
-            t.vaiTro === 'nguoi_dung' ? (
-              <div className="chat-bong chat-bong--nguoi-dung" key={t.id}>{t.noiDung}</div>
-            ) : (
-              <div className="chat-bong chat-bong--ai" key={t.id}>
-                {t.dangXuLy ? (
-                  <span className="chat-dang-xu-ly">
-                    <span className="chat-xoay" aria-hidden="true">⟳</span>
-                    AI đang tìm gợi ý phù hợp...
-                  </span>
-                ) : (
-                  <>
-                    <p className="chu-nho chu-nhat">Gợi ý cho bạn:</p>
-                    <div className="dai-ngang dai-ngang--tren">
-                      {t.ketQua.map((m) => <TheMon key={m.id} mon={m} onChon={onChonMon} />)}
-                    </div>
-                    {/* §1.2 — Dashboard KHÔNG ghi dữ liệu, không có nút
-                        "chọn món"/"tick bữa" ở đây. */}
-                    <p className="chu-be chu-nhat goi-y__dan-loi">
-                      Bấm vào món để xem chi tiết.
-                    </p>
-                  </>
-                )}
-              </div>
-            )
-          )}
-        </div>
-      )}
-
-      <form className="chat-nhap" onSubmit={guiTuDo}>
-        <input
-          type="text"
-          className="chat-nhap__o"
-          placeholder="Gõ yêu cầu của bạn... (demo, chưa hiểu ngôn ngữ thật)"
-          value={dangGo}
-          onChange={(e) => datDangGo(e.target.value)}
-        />
-        <button className="nut nut--chinh" type="submit" disabled={!dangGo.trim()}>Gửi</button>
-      </form>
-    </Khoi>
-  )
-}
