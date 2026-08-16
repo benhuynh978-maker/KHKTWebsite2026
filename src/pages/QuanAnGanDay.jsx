@@ -23,6 +23,7 @@ import TheMon from '../components/TheMon.jsx'
 import ModalMon from '../components/ModalMon.jsx'
 import LocDiUng from '../components/LocDiUng.jsx'
 import TrangThaiRong from '../components/TrangThaiRong.jsx'
+import FormDeXuatMon from '../components/FormDeXuatMon.jsx'
 import { layTatCaQuanKemMon, layHoSo } from '../data/api.js'
 import { xaoTron } from '../lib/xepThuTu.js'
 import { khoangCach, boDauChu, TEN_NGUON } from '../lib/dinhDang.js'
@@ -31,6 +32,9 @@ import { monAnToanChoDiUng } from '../lib/diUng.js'
 export default function QuanAnGanDay() {
   const hoSo = layHoSo()
   const [monDangXem, datMonDangXem] = useState(null)
+  // Thêm 12/08/2026 — nút "+" đề xuất quán/món (ẩm thực học đường), xem
+  // FormDeXuatMon.jsx.
+  const [hienFormDeXuat, datHienFormDeXuat] = useState(false)
 
   const [tuKhoa, datTuKhoa] = useState('')
   const [locDiUng, datLocDiUng] = useState({ cheDo: 'theo_ho_so', dsChon: hoSo.di_ung, khongLoc: false })
@@ -55,7 +59,10 @@ export default function QuanAnGanDay() {
       .filter((q) => {
         if (tk && !boDauChu(q.ten_quan).includes(tk)) return false
         if (locLoaiHinh !== 'tat_ca' && q.loai_hinh !== locLoaiHinh) return false
-        if (q.khoang_cach_m > khoangCachToiDa) return false
+        // khoangCachToiDa === trần thanh trượt nghĩa "không giới hạn" — chỉ
+        // lọc khi có giới hạn THẬT; quán chưa có khoảng cách (null) phải bị
+        // loại khi đó, không mặc định coi là đạt (null > số ép về false).
+        if (khoangCachToiDa < 2000 && (q.khoang_cach_m == null || q.khoang_cach_m > khoangCachToiDa)) return false
         return true
       })
       .map((q) => ({
@@ -72,7 +79,14 @@ export default function QuanAnGanDay() {
 
   return (
     <>
-      <Khoi tieuDe="Quán ăn gần đây">
+      <Khoi
+        tieuDe="Quán ăn gần đây"
+        hanhDong={
+          <button className="nut nut--chinh" type="button" onClick={() => datHienFormDeXuat(true)}>
+            + Đề xuất quán/món
+          </button>
+        }
+      >
         <input
           className="o-tim-kiem"
           type="search"
@@ -145,6 +159,10 @@ export default function QuanAnGanDay() {
 
       {monDangXem && (
         <ModalMon mon={monDangXem} onDong={() => datMonDangXem(null)} />
+      )}
+
+      {hienFormDeXuat && (
+        <FormDeXuatMon onDong={() => datHienFormDeXuat(false)} />
       )}
     </>
   )

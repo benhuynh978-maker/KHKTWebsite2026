@@ -32,7 +32,14 @@
       Dùng thẳng chuỗi này làm khoá chống-lặp "món gốc" ở sinhLoTrinh.js —
       ý nghĩa lệch nhẹ (chống lặp theo NGUYÊN LIỆU thay vì theo BIẾN THỂ
       MÓN cụ thể) nhưng là proxy tốt nhất có trong dữ liệu thật hiện có.
-   ========================================================================= */
+
+   Từ 12/08/2026 (đề xuất quán/món từ học sinh): chỉ xin mon_an có
+   trang_thai_duyet='da_duyet' — món học sinh vừa gửi (mặc định
+   'cho_duyet', xem sql/10-...sql) lọc ngay ở nguồn, KHÔNG rơi vào
+   DANH_SACH_MON cho tới khi có người duyệt tay trong Supabase Table
+   Editor. Quán KHÔNG lọc ở đây (vẫn xin hết, kể cả quán chỉ có món chưa
+   duyệt) — quán "hiện ra" được suy tại CongDuLieu.jsx từ việc có ≥1 món đã
+   duyệt thuộc về nó, không phải từ một cờ riêng trên quan_an. */
 
 import { supabase, GIOI_HAN_DONG, THOI_GIAN_CHO_TOI_DA_MS } from './client.js'
 
@@ -128,7 +135,7 @@ export async function taiKhoVi4() {
     })
     ;[ketQuaMonAn, ketQuaDinhDuong, ketQuaQuan] = await Promise.race([
       Promise.all([
-        supabase.from(TEN_BANG_MON_AN).select('*', { count: 'exact' }).limit(GIOI_HAN_DONG),
+        supabase.from(TEN_BANG_MON_AN).select('*', { count: 'exact' }).eq('trang_thai_duyet', 'da_duyet').limit(GIOI_HAN_DONG),
         supabase.from(TEN_BANG_DINH_DUONG).select('*', { count: 'exact' }).limit(GIOI_HAN_DONG),
         supabase.from(TEN_BANG_QUAN_AN).select('*', { count: 'exact' }).limit(GIOI_HAN_DONG),
       ]),
@@ -156,6 +163,11 @@ export async function taiKhoVi4() {
     ten_quan: q.ten_quan,
     loai_hinh: q.loai_hinh,
     dia_chi: q.dia_chi,
+    // Thêm 10/08/2026 — CongDuLieu.jsx lọc mon/quan theo đúng khu vực
+    // trường học của hồ sơ TRƯỚC khi đổ vào DANH_SACH_MON/QUAN (điểm lọc
+    // DUY NHẤT cho cả app, xem sql/9-tao-bang-truong-hoc.sql). null = quán
+    // chưa gắn trường — bị loại khỏi MỌI học sinh, không suy đoán.
+    truong_hoc: q.truong_hoc,
     khoang_cach_m: typeof q.khoang_cach_km === 'number' ? Math.round(q.khoang_cach_km * 1000) : null,
     khoang_gio_hoat_dong: khoangGioHoatDong(q),
     ngay_ban_va_nghi: ngayBanVaNghi(q),

@@ -44,10 +44,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { tien, khoangCach } from '../lib/dinhDang.js'
+import { useDongBangEsc } from '../lib/dongBangEsc.js'
 import { ghiNhanDaAnTuChon, tenNhomDiUng, layBinhLuan, layDanhGia } from '../data/api.js'
 import MienTru from './MienTru.jsx'
 import DanhGiaSao from './DanhGiaSao.jsx'
 import BangBinhLuan from './BangBinhLuan.jsx'
+import BaoCaoVanDe from './BaoCaoVanDe.jsx'
 
 // Dữ liệu Supabase thật hiện chưa có cột sai_so_* nào được nhập (toàn null)
 // — ẩn hẳn cụm "(±...)" khi thiếu, không hiện "(±)" rỗng trông như số liệu.
@@ -57,9 +59,11 @@ function BienSaiSo({ giaTri }) {
 }
 
 export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
+  useDongBangEsc(onDong)
   const [trangThai, datTrangThai] = useState('xem') // xem | da_ghi | bi_chan
   const [thongDiepChan, datThongDiepChan] = useState('')
   const [hienBinhLuan, datHienBinhLuan] = useState(false)
+  const [hienBaoCao, datHienBaoCao] = useState(false)
 
   const [soBinhLuan, datSoBinhLuan] = useState(0)
   const [danhGia, datDanhGia] = useState(null)
@@ -118,6 +122,16 @@ export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
               <p className="chu-nhat">
                 {quan?.ten_quan} · {khoangCach(quan?.khoang_cach_m)}
               </p>
+              {/* Địa chỉ/SĐT — 15/08/2026, yêu cầu riêng. Ẩn hẳn nếu quán
+                  chưa có (không hiện "Chưa có địa chỉ" gây khó nhìn), cùng
+                  nguyên tắc SĐT đang dùng ở TheMon.jsx/QuanAnGanDay.jsx. */}
+              {(quan?.dia_chi || quan?.so_dien_thoai) && (
+                <p className="chu-nho chu-nhat">
+                  {[quan?.dia_chi, quan?.so_dien_thoai ? `📞 ${quan.so_dien_thoai}` : null]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+              )}
             </div>
 
             <div className="modal-mon__gia-hang">
@@ -183,6 +197,14 @@ export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
               <span className="mon-binh-luan__xem">· Xem bình luận</span>
             </button>
 
+            <button
+              type="button"
+              className="lien-ket bao-cao-van-de-nut"
+              onClick={() => datHienBaoCao(true)}
+            >
+              🚩 Báo cáo vấn đề với món này
+            </button>
+
             <div className="modal-mon__hanh-dong">
               {trangThai === 'xem' && chiXem && (
                 <Link className="nut nut--chinh nut--rong" to="/an-gi-hom-nay" onClick={onDong}>
@@ -207,6 +229,13 @@ export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
 
       {hienBinhLuan && (
         <BangBinhLuan mon={mon} onDong={dongBangBinhLuan} />
+      )}
+
+      {hienBaoCao && (
+        <BaoCaoVanDe
+          moTaGoiY={`Món "${mon.ten_mon}" tại quán "${quan?.ten_quan ?? '(không rõ quán)'}": `}
+          onDong={() => datHienBaoCao(false)}
+        />
       )}
     </>
   )

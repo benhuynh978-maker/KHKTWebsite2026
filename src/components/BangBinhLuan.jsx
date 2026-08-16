@@ -19,10 +19,12 @@
 import { useEffect, useState } from 'react'
 import { layBinhLuan, guiBinhLuanMon, layDanhGia, guiDanhGia } from '../data/api.js'
 import { ngayGio } from '../lib/dinhDang.js'
+import { useDongBangEsc } from '../lib/dongBangEsc.js'
 import TrangThaiRong from './TrangThaiRong.jsx'
 import ChonSao from './ChonSao.jsx'
 
 export default function BangBinhLuan({ mon, onDong }) {
+  useDongBangEsc(onDong)
   const [dsBinhLuan, datDsBinhLuan] = useState([])
   const [soSaoChon, datSoSaoChon] = useState(0)
   const [noiDung, datNoiDung] = useState('')

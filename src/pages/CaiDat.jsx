@@ -3,8 +3,8 @@
    Theo "Kế hoạch trang Hồ sơ & Cài đặt" §3.
    ========================================================================= */
 
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Khoi from '../components/Khoi.jsx'
 import { layHoSo, xoaToanBoDuLieu, guiPhanHoiHoTro } from '../data/api.js'
 import { dangXuatThat } from '../data/supabase/khoXacThuc.js'
@@ -12,13 +12,25 @@ import { dangXuatThat } from '../data/supabase/khoXacThuc.js'
 export default function CaiDat() {
   const hoSo = layHoSo()
   const dieuHuong = useNavigate()
+  const { hash } = useLocation()
+
+  // Thêm 12/08/2026 — lối vào "Góp ý / Báo cáo" ở thanh đầu trang
+  // (BoCuc.jsx) dẫn thẳng tới #lien-he-ho-tro, cuộn tới đây khi vào bằng
+  // link có hash đó (React Router không tự cuộn theo hash).
+  useEffect(() => {
+    if (hash === '#lien-he-ho-tro') {
+      document.getElementById('lien-he-ho-tro')?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [hash])
 
   return (
     <>
       <KhoiDangXuat />
       <KhoiDinhDanh maSo={hoSo.ma_6_so} />
       <KhoiQuyenRiengTu hoSo={hoSo} dieuHuong={dieuHuong} />
-      <KhoiLienHeHoTro />
+      <div id="lien-he-ho-tro">
+        <KhoiLienHeHoTro />
+      </div>
     </>
   )
 }
@@ -78,9 +90,15 @@ function KhoiDinhDanh({ maSo }) {
 function KhoiQuyenRiengTu({ hoSo, dieuHuong }) {
   const [dangXacNhan, datDangXacNhan] = useState(false)
   const [daXoa, datDaXoa] = useState(false)
+  const [dangXoa, datDangXoa] = useState(false)
+  const [loiXoa, datLoiXoa] = useState('')
 
-  const xacNhanXoa = () => {
-    xoaToanBoDuLieu()
+  const xacNhanXoa = async () => {
+    datDangXoa(true)
+    datLoiXoa('')
+    const kq = await xoaToanBoDuLieu()
+    datDangXoa(false)
+    if (!kq.ok) { datLoiXoa(kq.loi); return }
     datDangXacNhan(false)
     datDaXoa(true)
   }
@@ -109,11 +127,12 @@ function KhoiQuyenRiengTu({ hoSo, dieuHuong }) {
             Bạn có chắc muốn xoá TOÀN BỘ dữ liệu (hồ sơ, lộ trình, lịch sử ăn uống)?
             Không thể hoàn tác.
           </p>
+          {loiXoa && <p className="loi-form">Xoá chưa xong: {loiXoa} — bấm thử lại.</p>}
           <div className="hang-nut-doi">
-            <button className="nut nut--nguy-hiem" onClick={xacNhanXoa} type="button">
-              Xác nhận xoá
+            <button className="nut nut--nguy-hiem" onClick={xacNhanXoa} type="button" disabled={dangXoa}>
+              {dangXoa ? 'Đang xoá…' : 'Xác nhận xoá'}
             </button>
-            <button className="nut" onClick={() => datDangXacNhan(false)} type="button">
+            <button className="nut" onClick={() => datDangXacNhan(false)} type="button" disabled={dangXoa}>
               Huỷ
             </button>
           </div>

@@ -30,12 +30,21 @@ import { TI_LE_BUA, KHOANG_CACH_CHONG_LAP } from '../lib/thamSoLoTrinh.js'
 import { tinhMucTieuDinhDuong } from '../lib/traBangDinhDuong.js'
 import { monAnToanChoDiUng } from '../lib/diUng.js'
 import { xepHangMon, tinhDiem } from '../lib/chamDiem.js'
-import { THAM_SO_CHUAN } from '../lib/thamSoChamDiem.js'
+import { THAM_SO_CHUAN, HE_SO_BUA } from '../lib/thamSoChamDiem.js'
+import { tinhPhanThieu, xepHangPhuTro } from '../lib/goiYBoSung.js'
+import { DANH_SACH_THAM_KHAO_PHU_TRO } from './mock/thucPhamThamKhao.js'
+import { DANH_SACH_SAN_PHAM_PHU_TRO } from './mock/sanPhamPhuTro.js'
+import {
+  LICH_SU_GHI_NHAN_PHU_TRO, themGhiNhanPhuTro, xoaGhiNhanPhuTroCuaHocSinh, xoaMotDongGhiNhanPhuTro,
+} from './mock/ghiNhanPhuTroLichSu.js'
+import {
+  luuGhiNhanPhuTro, xoaMotGhiNhanPhuTro, xoaToanBoGhiNhanPhuTroCuaHocSinh,
+} from './supabase/khoGhiNhanPhuTro.js'
 import { CAU_HINH_BOX, taoTrangThaiChon } from '../lib/box.js'
 import { buoiHienTai } from '../lib/buoi.js'
 import { NHOM_DI_UNG, tenDiUng } from './mock/danhSachDiUng.js'
 import { xepKhoangNgay, xepKhoangTuan, xepKhoangThang } from '../lib/xepKhoangThoiGian.js'
-import { supabase } from './supabase/client.js'
+import { supabase, GIOI_HAN_DONG } from './supabase/client.js'
 import { luuHoSo } from './supabase/khoHoSo.js'
 import {
   luuLoTrinhMoi, luuHuyLoTrinh, luuGhiNhan, xoaGhiNhan, xoaToanBoLoTrinhCuaHocSinh,
@@ -107,15 +116,33 @@ export const capNhatHoSo = (thongTin) => {
  *  ký lại/đăng nhập thật để cấp một mã mới.
  *  Từ 07/08/2026 (đợt RLS): thêm xoá bình luận/đánh giá — trước đó 2 bảng
  *  này chưa có policy DELETE (sql/3-...sql) nên bị bỏ sót, nay
- *  sql/8-them-auth-va-rls.sql đã mở DELETE theo đúng chủ sở hữu. */
-export const xoaToanBoDuLieu = () => {
-  ghiNhatKyXoa(HOC_SINH_HIEN_TAI.ma_6_so)
-  xoaToanBoLoTrinhCuaHocSinh(HOC_SINH_HIEN_TAI.ma_6_so)
+ *  sql/8-them-auth-va-rls.sql đã mở DELETE theo đúng chủ sở hữu.
+ *  Từ 14/08/2026: thêm xoá ghi nhận phụ trợ — thiếu dòng này thì lời hứa
+ *  "xoá toàn bộ" sẽ sai, một phần dữ liệu cá nhân vẫn còn sau khi xoá.
+ *
+ *  Từ 15/08/2026: chuyển thành async, AWAIT toàn bộ 6 lệnh xoá/lưu chạm
+ *  Supabase thật rồi mới báo kết quả — trước đó fire-and-forget khiến nơi
+ *  gọi (CaiDat.jsx) luôn báo "đã xoá" ngay lập tức dù 1 lệnh xoá có thể
+ *  thất bại thật (mất mạng, RLS...), học sinh tin nhầm dữ liệu đã hết
+ *  trong khi vẫn còn trên Supabase — rủi ro thật với R-14/R-25. Best-effort:
+ *  vẫn thử xoá hết dù có lệnh nào lỗi (không dừng giữa chừng), chỉ khác ở
+ *  chỗ báo đúng sự thật thay vì luôn báo thành công. ghiNhatKyXoa (audit
+ *  log) CỐ TÌNH giữ nguyên fire-and-forget — không phải dữ liệu học sinh
+ *  cần xoá, lỗi ghi log không nên tính là "xoá thất bại". */
+export const xoaToanBoDuLieu = async () => {
+  const ma6So = HOC_SINH_HIEN_TAI.ma_6_so
+  ghiNhatKyXoa(ma6So)
+
+  const ketQuaXoa = await Promise.all([
+    xoaToanBoLoTrinhCuaHocSinh(ma6So),
+    xoaToanBoGoiYCuaHocSinh(ma6So),
+    xoaToanBoGhiNhanPhuTroCuaHocSinh(ma6So),
+    xoaBinhLuanCuaHocSinh(ma6So),
+    xoaDanhGiaCuaHocSinh(ma6So),
+  ])
   xoaSachTrangThaiLoTrinh()
-  xoaToanBoGoiYCuaHocSinh(HOC_SINH_HIEN_TAI.ma_6_so)
-  xoaGhiNhanCuaHocSinh(HOC_SINH_HIEN_TAI.ma_6_so)
-  xoaBinhLuanCuaHocSinh(HOC_SINH_HIEN_TAI.ma_6_so)
-  xoaDanhGiaCuaHocSinh(HOC_SINH_HIEN_TAI.ma_6_so)
+  xoaGhiNhanCuaHocSinh(ma6So)
+  xoaGhiNhanPhuTroCuaHocSinh(ma6So)
 
   Object.assign(HOC_SINH_HIEN_TAI, {
     ten_ao: '', tuoi: null, gioi: null, muc_van_dong: null,
@@ -124,7 +151,11 @@ export const xoaToanBoDuLieu = () => {
     canxi_muc_tieu: null, sat_muc_tieu: null, kem_muc_tieu: null,
     da_dong_y: false, ngay_dong_y_gan_nhat: null,
   })
-  luuHoSo(HOC_SINH_HIEN_TAI)
+  const ketQuaHoSo = await luuHoSo(HOC_SINH_HIEN_TAI)
+
+  const loi = [...ketQuaXoa, ketQuaHoSo].filter((k) => !k.ok).map((k) => k.loi)
+  if (loi.length > 0) return { ok: false, loi: loi.join('; ') }
+  return { ok: true }
 }
 
 /** Cài đặt — "Liên hệ hỗ trợ". mã 6 số TUỲ CHỌN do người dùng tự gõ (không
@@ -218,16 +249,16 @@ export const guiDanhGia = async (mon_id, soSao) => {
  *  (bảng chưa có policy DELETE, xem sql/3-...sql). Nay sql/8-them-auth-va-
  *  rls.sql đã mở DELETE theo đúng ma_hoc_sinh của người gọi, gọi từ
  *  xoaToanBoDuLieu() ở trên. */
-const xoaBinhLuanCuaHocSinh = (ma6So) => {
-  supabase.from('binh_luan_mon').delete().eq('ma_hoc_sinh', ma6So).then(({ error }) => {
-    if (error) console.error(error)
-  })
+const xoaBinhLuanCuaHocSinh = async (ma6So) => {
+  const { error } = await supabase.from('binh_luan_mon').delete().eq('ma_hoc_sinh', ma6So)
+  if (error) return { ok: false, loi: `Không xoá được bình luận: ${error.message}` }
+  return { ok: true }
 }
 
-const xoaDanhGiaCuaHocSinh = (ma6So) => {
-  supabase.from('danh_gia_mon').delete().eq('ma_hoc_sinh', ma6So).then(({ error }) => {
-    if (error) console.error(error)
-  })
+const xoaDanhGiaCuaHocSinh = async (ma6So) => {
+  const { error } = await supabase.from('danh_gia_mon').delete().eq('ma_hoc_sinh', ma6So)
+  if (error) return { ok: false, loi: `Không xoá được đánh giá sao: ${error.message}` }
+  return { ok: true }
 }
 
 /* --- Lộ trình (Khu vực 2) ---------------------------------------------
@@ -347,6 +378,56 @@ export const layMonKhopKhung = (khung, n = 3) => {
     })
     .map((x) => x.mon)
     .slice(0, n)
+}
+
+/** Lộ trình, Giai đoạn 4 — gợi ý bổ sung "hôm nay" (14/08/2026, hiện thành
+ *  bảng nổi trong TheoDoi.jsx từ 14/08/2026 — trước đó là khối hiển thị
+ *  thuần, nay có nút Ghi nhận nối sang GhiNhanPhuTro.jsx thật). Trả về
+ *  { phuTro, phanThieu } hoặc null.
+ *
+ *  Phần thiếu tính RIÊNG cho từng bữa ĐÃ CÓ ghi nhận thật trong khung hôm
+ *  nay rồi mới cộng lại — KHÔNG lấy mục tiêu CẢ NGÀY trừ đi tổng đã ăn, vì
+ *  làm vậy sẽ tính oan các bữa chưa tới (chưa ăn) thành "thiếu", thổi phồng
+ *  phần thiếu (góp ý người dùng 14/08/2026). Bữa "ăn ngoài khung" (dinh
+ *  dưỡng NULL) và bữa chưa ăn đều bỏ qua — không suy đoán.
+ *
+ *  Tái dùng NGUYÊN thuật toán tinhPhanThieu/xepHangPhuTro đã kiểm chứng ở
+ *  Chat AI (lib/goiYBoSung.js) — không phát minh công thức mới. Lọc theo
+ *  hoSo.di_ung THẬT (khác Chat AI phải dùng dị ứng khai trong hội thoại vì
+ *  chính sách "không tự đọc hồ sơ" — ở Lộ trình có hồ sơ thật, dùng thẳng
+ *  còn đúng hơn). */
+export const layGoiYBoSungHomNayLoTrinh = () => {
+  const hoSo = layHoSo()
+  const loTrinh = layLoTrinhDangChay()
+  const soBua = loTrinh?.cac_buoi_ap_dung?.length
+  const khungHomNay = layKhungHomNay()
+  const ghiNhan = layTatCaGhiNhanLoTrinh()
+
+  const phanThieuTong = { kcal: 0, canxi: 0, sat: 0, kem: 0 }
+  for (const khung of khungHomNay) {
+    const gn = ghiNhan.find((g) => g.lo_trinh_khung_id === khung.id)
+    if (!gn || gn.trang_thai !== 'da_an_trong_khung') continue
+
+    const tiLe = TI_LE_BUA[soBua]?.[khung.buoi] ?? 0
+    const mucTieuBua = mucTieuMotBuaTuHoSo(hoSo, tiLe)
+    const phanThieuBua = tinhPhanThieu(
+      { kcal: mucTieuBua.kcal, canxi_mg: mucTieuBua.canxi, sat_mg: mucTieuBua.sat, kem_mg: mucTieuBua.kem },
+      {
+        kcal: gn.kcal_tai_thoi_diem ?? 0,
+        canxi_mg: gn.canxi_tai_thoi_diem ?? 0,
+        sat_mg: gn.sat_tai_thoi_diem ?? 0,
+        kem_mg: gn.kem_tai_thoi_diem ?? 0,
+      },
+    )
+    phanThieuTong.kcal += phanThieuBua.kcal
+    phanThieuTong.canxi += phanThieuBua.canxi
+    phanThieuTong.sat += phanThieuBua.sat
+    phanThieuTong.kem += phanThieuBua.kem
+  }
+
+  const thamKhaoAnToan = DANH_SACH_THAM_KHAO_PHU_TRO.filter((tp) => monAnToanChoDiUng(tp, hoSo.di_ung))
+  const xep = xepHangPhuTro(thamKhaoAnToan, phanThieuTong).slice(0, 1)
+  return xep.length > 0 ? { phuTro: xep[0].phuTro, phanThieu: phanThieuTong } : null
 }
 
 /* =========================================================================
@@ -580,6 +661,31 @@ function boDauTiengVietChat(s) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
 }
 
+/* Gợi ý bổ sung THẬT cho 1 món (thêm 13/08/2026, di dời từ test/ sang) —
+   Y HỆT thuật toán tinhGoiYBoSungChoMonChat() của test/dieu-phoi-chat.js:
+   mục tiêu bữa (mucTieu cả ngày × HE_SO_BUA) + tinhPhanThieu + xepHangPhuTro,
+   chỉ lấy thuc_pham_tham_khao (DANH_SACH_THAM_KHAO_PHU_TRO — KHÔNG dùng
+   san_pham_phu_tro, chưa port sang Website). AI KHÔNG được biết field này
+   (chốt 13/08/2026) — gắn vào monList (UI) chứ không phải tomTat (Gemini),
+   xem timMonChat() bên dưới. Trả { phuTro, phanThieu } hoặc null (không
+   thiếu gì / chưa tra được dinh dưỡng món này / hết dữ liệu tham khảo) —
+   null thì KHÔNG hiện gì, im lặng, đúng triết lý Gợi ý nhanh. */
+function tinhGoiYBoSungChoMon(mon, diUngDaChon, mucTieu) {
+  if (!mon.coDinhDuong) return null
+  const phanThieu = tinhPhanThieu(
+    {
+      kcal: (mucTieu.kcal_muc_tieu ?? 0) * HE_SO_BUA,
+      canxi_mg: (mucTieu.canxi_muc_tieu ?? 0) * HE_SO_BUA,
+      sat_mg: (mucTieu.sat_muc_tieu ?? 0) * HE_SO_BUA,
+      kem_mg: (mucTieu.kem_muc_tieu ?? 0) * HE_SO_BUA,
+    },
+    mon,
+  )
+  const thamKhaoAnToan = DANH_SACH_THAM_KHAO_PHU_TRO.filter((tp) => monAnToanChoDiUng(tp, diUngDaChon))
+  const xep = xepHangPhuTro(thamKhaoAnToan, phanThieu).slice(0, 1)
+  return xep.length > 0 ? { phuTro: xep[0].phuTro, phanThieu } : null
+}
+
 /** Tóm tắt món cho Gemini đọc (KHÔNG gửi nguyên object đầy đủ — đỡ tốn
  *  token, và tránh lộ field nội bộ như sai số/mon_goc_id không cần AI biết).
  *  UI hiện thẻ món dùng object ĐẦY ĐỦ (monList), tách riêng. */
@@ -629,7 +735,18 @@ export const timMonChat = (thamSo, maMonDaGoiY) => {
   }
   if (ketQua.length === 0) return { timDuoc: false, lyDo: box.thongBao.hetDuLieu || box.thongBao.khoRong }
 
-  return { timDuoc: true, monList: ketQua, tomTat: ketQua.map(tomTatMonChoAI) }
+  const mucTieu = layHoSoMauChat()
+  const monListVoiBoSung = ketQua.map((m) => ({
+    ...m,
+    goiYBoSung: tinhGoiYBoSungChoMon(m, boiCanh.diUngDaChon, mucTieu),
+    // Gắn kèm để UI dùng khi mở luồng "Ghi nhận" thật (lọc sản phẩm theo
+    // đúng dị ứng học sinh đã khai TRONG TIN NHẮN NÀY, không đọc hồ sơ đã
+    // lưu — cùng chính sách "chat không tự đọc hồ sơ" áp dụng cho gợi ý bổ
+    // sung ở trên).
+    diUngDaChon: boiCanh.diUngDaChon,
+  }))
+
+  return { timDuoc: true, monList: monListVoiBoSung, tomTat: ketQua.map(tomTatMonChoAI) }
 }
 
 /** Tool `tra_cuu_mon_theo_ten` — tìm theo tên/từ khoá, không đi qua box.js
@@ -659,6 +776,19 @@ export const traCuuMonTheoTen = (thamSo) => {
   }
 }
 
+/** Định dạng 1 quán cho tool `tra_cuu_quan` — DÙNG CHUNG cho cả 2 nhánh
+ *  (liệt kê tất cả / tìm theo tên) để luôn trả về đúng 1 hình dạng dữ
+ *  liệu, tránh Gemini phải đoán field nào có tuỳ theo có `ten_quan` hay
+ *  không (15/08/2026, trước đó nhánh liệt kê tất cả chỉ trả tên+khoảng
+ *  cách dù đã tính sẵn đủ soMon/monTieuBieu/giờ mở như nhánh kia). */
+function dinhDangQuanChoTool(q) {
+  return {
+    ten_quan: q.ten_quan, so_mon: q.soMon, mon_tieu_bieu: q.monTieuBieu,
+    khoang_gio_hoat_dong: q.khoang_gio_hoat_dong, ngay_ban_va_nghi: q.ngay_ban_va_nghi,
+    khoang_cach_km: q.khoang_cach_m !== null ? q.khoang_cach_m / 1000 : null,
+  }
+}
+
 /** Tool `tra_cuu_quan` — gộp món theo quán (dữ liệu vốn có sẵn trên từng
  *  dòng món qua layTatCaMonKemQuan(), chỉ tổng hợp lại). Đơn vị đổi km↔m
  *  giữa tool (km, khớp cách học sinh nói) và dữ liệu Website (m). */
@@ -685,24 +815,54 @@ export const traCuuQuan = (thamSo) => {
       xep = xep.filter((q) => q.khoang_cach_m !== null && q.khoang_cach_m <= banKinhM)
       if (xep.length === 0) return { timDuoc: false, lyDo: `Không có quán nào trong bán kính ${thamSo.trong_ban_kinh_km}km (đã khảo sát khoảng cách).` }
     }
-    return {
-      timDuoc: true,
-      danhSachQuan: xep.map((q) => ({ ten_quan: q.ten_quan, khoang_cach_km: q.khoang_cach_m !== null ? q.khoang_cach_m / 1000 : null })),
-    }
+    return { timDuoc: true, danhSachQuan: xep.map(dinhDangQuanChoTool) }
   }
 
   const tenChuan = boDauTiengVietChat(tenTim)
   const ketQua = [...theoQuan.values()].filter((q) => boDauTiengVietChat(q.ten_quan).includes(tenChuan))
   if (ketQua.length === 0) return { timDuoc: false, lyDo: `Không tìm thấy quán nào khớp "${tenTim}" trong hệ thống.` }
 
-  return {
-    timDuoc: true,
-    quanList: ketQua.map((q) => ({
-      ten_quan: q.ten_quan, so_mon: q.soMon, mon_tieu_bieu: q.monTieuBieu,
-      khoang_gio_hoat_dong: q.khoang_gio_hoat_dong, ngay_ban_va_nghi: q.ngay_ban_va_nghi,
-      khoang_cach_km: q.khoang_cach_m !== null ? q.khoang_cach_m / 1000 : null,
-    })),
+  return { timDuoc: true, danhSachQuan: ketQua.map(dinhDangQuanChoTool) }
+}
+
+/* =========================================================================
+   "GHI NHẬN" THẬT — thực phẩm bổ sung (thêm 14/08/2026, di dời từ test/).
+   Tìm/chọn SẢN PHẨM THẬT (san_pham_phu_tro, có thương hiệu) rồi ghi vào
+   phu_tro_ghi_nhan — KHÁC gợi ý bổ sung tự động ở trên (chỉ tra
+   thuc_pham_tham_khao, không ghi gì). Xem quyết định tách 2 nguồn ở
+   sql/12-tao-bang-thuc-pham-phu-tro.sql.
+   ========================================================================= */
+
+/** Tìm sản phẩm phụ trợ THẬT theo tên — lọc an toàn dị ứng trước (cùng
+ *  nguyên tắc fail-closed của monAnToanChoDiUng), rồi khớp chuỗi con,
+ *  không phân biệt hoa/thường (KHÔNG bỏ dấu — cùng độ đơn giản đã dùng ở
+ *  test/dieu-phoi.js:locSanPhamTheoTuKhoa, đủ cho danh sách nhỏ). Rỗng thì
+ *  trả nguyên danh sách an toàn (gõ chưa gì = thấy hết, giống lúc mới mở
+ *  ô tìm). */
+export const timSanPhamPhuTro = (tuKhoa, diUngDaChon) => {
+  const anToan = DANH_SACH_SAN_PHAM_PHU_TRO.filter((sp) => monAnToanChoDiUng(sp, diUngDaChon))
+  const tu = (tuKhoa ?? '').trim().toLowerCase()
+  if (!tu) return anToan
+  return anToan.filter((sp) => sp.ten.toLowerCase().includes(tu))
+}
+
+/** Ghi "đã ăn/uống" 1 sản phẩm phụ trợ — PHẢI await (id do CSDL tự sinh,
+ *  xem ghi chú đầu khoGhiNhanPhuTro.js). Nơi gọi (KhoiGoiYNhanh.jsx) tự
+ *  hiện trạng thái "đang lưu" trong lúc chờ. */
+export const ghiNhanDaAnPhuTro = async (sp) => {
+  const dong = {
+    ma_hoc_sinh: HOC_SINH_HIEN_TAI.ma_6_so,
+    san_pham_id: sp.id,
+    ten_tai_thoi_diem: sp.ten,
+    kcal_tai_thoi_diem: sp.kcal,
+    canxi_tai_thoi_diem: sp.canxi_mg,
+    sat_tai_thoi_diem: sp.sat_mg,
+    kem_tai_thoi_diem: sp.kem_mg,
   }
+  const kq = await luuGhiNhanPhuTro(dong)
+  if (!kq.ok) return kq
+  themGhiNhanPhuTro(kq.dong)
+  return { ok: true }
 }
 
 /* =========================================================================
@@ -727,11 +887,19 @@ export const traCuuQuan = (thamSo) => {
  *  AnGiHomNay) tự tải qua useEffect, xem ghi chú ở 2 nơi đó. */
 export const layDeXuatNoiBat = async (soLuong = 5) => {
   const nguong7NgayTruoc = new Date(Date.now() - 7 * MOT_NGAY_MS).toISOString()
-  const { data, error } = await supabase
+  const { data, error, count } = await supabase
     .from('goi_y_chon_mon_an_danh')
-    .select('ma_mon')
+    .select('ma_mon', { count: 'exact' })
     .gte('thoi_gian_ghi_nhan', nguong7NgayTruoc)
+    .limit(GIOI_HAN_DONG)
   if (error) { console.error(error); return [] }
+  // Trần REST mặc định cắt bớt IM LẶNG (không báo lỗi) nếu vượt
+  // GIOI_HAN_DONG — cùng cách phát hiện đã dùng ở mọi hàm tải dữ liệu khác
+  // (vd khoLoTrinh.js:taiKhuVuc2). Đề xuất nổi bật không quan trọng tới mức
+  // đáng chặn UI, chỉ log cảnh báo để biết mà nâng GIOI_HAN_DONG khi cần.
+  if (count != null && count > data.length) {
+    console.error(`layDeXuatNoiBat: dữ liệu bị cắt bớt (chạm trần ${GIOI_HAN_DONG} dòng, thật ra có ${count}) — xếp hạng có thể thiếu chính xác.`)
+  }
 
   const dem = new Map()
   for (const g of data) dem.set(g.ma_mon, (dem.get(g.ma_mon) ?? 0) + 1)
@@ -868,18 +1036,41 @@ export const layLichSuHopNhat = () => {
       }
     })
 
-  return [...tuLoTrinh, ...tuGoiY].sort(
+  // Thực phẩm bổ sung đã ghi nhận thật (thêm 14/08/2026) — CHỈ của học
+  // sinh đang xem (mảng cục bộ vốn đã chỉ chứa đúng học sinh này, xem
+  // CongDuLieu.jsx, nhưng lọc lại tường minh cho chắc, cùng nguyên tắc
+  // tuGoiY ở trên). Không có đạm/giá/tên quán trong schema phu_tro_ghi_nhan
+  // (xem sql/15) — để null, LichSu.jsx tự bỏ qua khi render.
+  const tuPhuTro = LICH_SU_GHI_NHAN_PHU_TRO
+    .filter((p) => p.ma_hoc_sinh === HOC_SINH_HIEN_TAI.ma_6_so)
+    .map((p) => ({
+      id: p.id,
+      xoaNguon: 'phu_tro',
+      nhan: 'bo_sung',
+      ten_mon: p.ten_tai_thoi_diem,
+      ten_quan: null,
+      loai_hinh: null,
+      gia: null, kcal: p.kcal_tai_thoi_diem, dam: null,
+      glucid: null, lipid: null,
+      canxi: p.canxi_tai_thoi_diem, sat: p.sat_tai_thoi_diem, kem: p.kem_tai_thoi_diem,
+      thoi_gian_ghi_nhan: p.thoi_gian_ghi_nhan,
+    }))
+
+  return [...tuLoTrinh, ...tuGoiY, ...tuPhuTro].sort(
     (a, b) => new Date(b.thoi_gian_ghi_nhan) - new Date(a.thoi_gian_ghi_nhan)
   )
 }
 
-/** §5 — xoá THẬT khỏi đúng bảng gốc, tuỳ dòng thuộc Khu vực 2 hay 3.
- *  Đồng bộ tự động với Theo dõi lộ trình vì cả hai đọc CHUNG mảng
- *  ghi_nhan — không cần logic đồng bộ riêng. */
+/** §5 — xoá THẬT khỏi đúng bảng gốc, tuỳ dòng thuộc Khu vực 2, 3, hay
+ *  phụ trợ. Đồng bộ tự động với Theo dõi lộ trình vì lo_trinh/ghi_nhan đọc
+ *  CHUNG mảng — không cần logic đồng bộ riêng. */
 export const xoaDongLichSu = (dong) => {
   if (dong.xoaNguon === 'lo_trinh') {
     xoaMotDongGhiNhanLoTrinh(dong.id)
     xoaGhiNhan(dong.id)
+  } else if (dong.xoaNguon === 'phu_tro') {
+    xoaMotDongGhiNhanPhuTro(dong.id)
+    xoaMotGhiNhanPhuTro(dong.id)
   } else {
     xoaMotDongGoiY(dong.id)
     xoaMotGoiYGhiNhan(dong.id)
@@ -892,6 +1083,14 @@ export const xoaDongLichSu = (dong) => {
    -------------------------------------------------------------------------
    3 MỤC (Phần 2.2): Lộ trình (Khu vực 2) / Gợi ý nhanh (Khu vực 3) /
    Tổng quan (hợp nhất 2+3). CHỈ mục Lộ trình có mốc tham chiếu (Phần 3.3).
+
+   Thêm 14/08/2026 (ngoài tài liệu gốc) — mục thứ 4 "Phụ trợ" (phu_tro_ghi_nhan),
+   đặt sau Tổng quan. Không mốc tham chiếu (không có "mục tiêu phụ trợ"
+   riêng ở Hồ sơ, giống Gợi ý nhanh). Chỉ 4 biểu đồ (kcal/canxi/sắt/kẽm —
+   đúng 4 chỉ số phu_tro_ghi_nhan có), không Chi tiêu/Đạm/Glucid/Lipid, xem
+   PhanTich.jsx. Tổng quan vẫn gộp CẢ phụ trợ (quyết định 14/08/2026) —
+   lọc đổi từ ngầm (`kcal != null`, tình cờ khớp) sang liệt kê rõ 3 nguồn.
+
    Vẫn còn 2 điểm tài liệu để ngỏ (Phần 9, chưa chốt):
      • 9.1 — mốc đạm lấy từ lộ trình đang chạy (lo_trinh_khung), KHÔNG từ
        Hồ sơ — quyết định TẠM THỜI theo chính tài liệu.
@@ -916,8 +1115,17 @@ export const layDuLieuPhanTich = (muc) => {
     // hai cùng ghi vào một bảng goi_y_ghi_nhan (Cơ sở dữ liệu, Khu vực 3).
     return toanBo.filter((d) => d.xoaNguon === 'goi_y')
   }
-  // "Tổng quan" — mọi dòng có số dinh dưỡng thật, gộp cả Khu vực 2 và 3.
-  return toanBo.filter((d) => d.kcal != null)
+  if (muc === 'phu_tro') {
+    return toanBo.filter((d) => d.xoaNguon === 'phu_tro')
+  }
+  // "Tổng quan" — gộp CÓ CHỦ ĐÍCH cả 3 nguồn trên (14/08/2026: đổi từ lọc
+  // ngầm `kcal != null` — cùng tình cờ đúng nhưng không tường minh — sang
+  // liệt kê rõ, không còn phụ thuộc trùng hợp trường kcal).
+  return toanBo.filter((d) =>
+    (d.xoaNguon === 'lo_trinh' && d.nhan === 'trong_khung') ||
+    d.xoaNguon === 'goi_y' ||
+    d.xoaNguon === 'phu_tro'
+  )
 }
 
 /** Mốc tham chiếu — CHỈ mục "Lộ trình" mới có (Phần 3.3).

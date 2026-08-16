@@ -6,15 +6,21 @@
    tránh 2 bản logic song song. Không dùng framework ngoài (http/fetch có
    sẵn từ Node) — zero dependency cho dễ chạy.
 
+   2 route: /api/chat (trợ lý hội thoại) và /api/gan-ma-dinh-duong (phân
+   loại mã dinh dưỡng, 15/08/2026 — xem ganMaDinhDuong.js) — cùng 1 server
+   cho gọn, không cần chạy 2 tiến trình lúc dev.
+
    Chạy: `node chat-server/server.js` (cần copy .env.example -> .env, điền
    GEMINI_API_KEY trước). Chỉ dùng khi `npm run dev` (Vite) — bản deploy
-   thật dùng netlify/functions/chat.js (dùng chung prompt/tool-schema này). */
+   thật dùng netlify/functions/chat.js + gan-ma-dinh-duong.js (dùng chung
+   prompt/tool-schema/logic ở đây). */
 
 import http from 'node:http'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { heThongPrompt } from './heThongPrompt.js'
 import { danhSachTool } from './toolSchema.js'
+import { phanLoaiMaDinhDuong } from './ganMaDinhDuong.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -75,8 +81,8 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }
 
-  if (req.url !== '/api/chat') {
-    guiJson(res, 404, { loi: 'Không tìm thấy đường dẫn — chỉ có POST /api/chat.' })
+  if (req.url !== '/api/chat' && req.url !== '/api/gan-ma-dinh-duong') {
+    guiJson(res, 404, { loi: 'Không tìm thấy đường dẫn — chỉ có POST /api/chat hoặc /api/gan-ma-dinh-duong.' })
     return
   }
   if (req.method !== 'POST') {
@@ -93,6 +99,13 @@ const server = http.createServer(async (req, res) => {
     than = await docThanJson(req)
   } catch {
     guiJson(res, 400, { loi: 'Nội dung gửi lên không đúng định dạng JSON.' })
+    return
+  }
+
+  if (req.url === '/api/gan-ma-dinh-duong') {
+    const ketQua = await phanLoaiMaDinhDuong({ tenMon: than.tenMon, moTa: than.moTa, apiKey: GEMINI_API_KEY, model: GEMINI_MODEL })
+    if (!ketQua.ok) { guiJson(res, 502, { loi: ketQua.loi }); return }
+    guiJson(res, 200, { maDinhDuong: ketQua.maDinhDuong, lyDo: ketQua.lyDo })
     return
   }
 

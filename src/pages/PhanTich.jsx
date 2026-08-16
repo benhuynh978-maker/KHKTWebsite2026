@@ -16,6 +16,13 @@
      Thêm 05/08/2026 (quyết định C2 — giữ kẽm): biểu đồ Kẽm, cuối cùng
      trong thứ tự cột — cùng cơ chế mốc tham chiếu/màu cố định như 6 chỉ
      số trên, không có gì khác biệt về xử lý.
+
+     Thêm 14/08/2026 (ngoài tài liệu gốc) — mục thứ 4 "Phụ trợ", cuối cùng
+     sau Tổng quan. KHÔNG mốc tham chiếu (giống Gợi ý nhanh — không có
+     "mục tiêu phụ trợ" riêng ở Hồ sơ). Chỉ 4/8 biểu đồ (kcal/canxi/sắt/
+     kẽm — đúng 4 chỉ số `phu_tro_ghi_nhan` có, xem sql/15) — dùng
+     CHI_SO_THEO_MUC bên dưới để giới hạn cột hiện ra theo từng mục, thay
+     vì luôn hiện đủ CAC_CHI_SO như 3 mục cũ.
    ========================================================================= */
 
 import { useState } from 'react'
@@ -29,6 +36,7 @@ const MUC = [
   { ma: 'lo_trinh', nhan: 'Lộ trình', rong: 'Chưa có lộ trình nào — tạo lộ trình để xem biểu đồ này.' },
   { ma: 'goi_y_nhanh', nhan: 'Gợi ý nhanh', rong: 'Chưa có lượt chọn món nào qua Gợi ý nhanh.' },
   { ma: 'tong_quan', nhan: 'Tổng quan', rong: 'Chưa có bữa nào được ghi nhận.' },
+  { ma: 'phu_tro', nhan: 'Phụ trợ', rong: 'Chưa có thực phẩm bổ sung nào được ghi nhận.' },
 ]
 
 const TAB_THOI_GIAN = [
@@ -49,6 +57,12 @@ const CAC_CHI_SO = [
   { khoa: 'kem', nhan: 'Kẽm', donVi: 'mg', mau: 'var(--mau-bd-kem)' },
 ]
 
+// Giới hạn cột hiện ra theo từng mục — mục không có mặt ở đây (lo_trinh/
+// goi_y_nhanh/tong_quan) mặc định hiện ĐỦ CAC_CHI_SO như trước giờ.
+const CHI_SO_THEO_MUC = {
+  phu_tro: ['kcal', 'canxi', 'sat', 'kem'],
+}
+
 export default function PhanTich() {
   const [muc, datMuc] = useState('lo_trinh')
   const [tabThoiGian, datTabThoiGian] = useState('ngay')
@@ -60,6 +74,9 @@ export default function PhanTich() {
   const rongHoanToan = layDuLieuPhanTich(muc).length === 0
   const buckets = layBieuDoPhanTich(muc, tabThoiGian)
   const moc = muc === 'lo_trinh' ? layMocThamChieuLoTrinh(tabThoiGian) : null
+  const dsChiSo = CHI_SO_THEO_MUC[muc]
+    ? CAC_CHI_SO.filter((cs) => CHI_SO_THEO_MUC[muc].includes(cs.khoa))
+    : CAC_CHI_SO
 
   return (
     <>
@@ -96,7 +113,7 @@ export default function PhanTich() {
           <TrangThaiRong>{mucHienTai.rong}</TrangThaiRong>
         </Khoi>
       ) : (
-        CAC_CHI_SO.map((cs) => {
+        dsChiSo.map((cs) => {
           const mocGiaTriGoc = moc ? moc[cs.khoa] : null
           const coMoc = mocGiaTriGoc != null
           const mocHienThi = coMoc ? (cs.doiDonVi ? cs.doiDonVi(mocGiaTriGoc) : mocGiaTriGoc) : undefined

@@ -100,9 +100,13 @@ function chuyenTuHang(hang) {
 }
 
 /** Trang Hồ sơ/Cài đặt gọi sau khi HOC_SINH_HIEN_TAI đã đổi tại chỗ — ghi
- *  đè NGUYÊN DÒNG lên Supabase. Fire-and-forget (không await ở nơi gọi):
- *  lỗi mạng ở đây không nên chặn thao tác đang làm trên giao diện — chỉ
- *  log lại, người dùng vẫn thấy thay đổi cục bộ ngay lập tức.
+ *  đè NGUYÊN DÒNG lên Supabase. Trả { ok, loi } nhưng phần lớn nơi gọi vẫn
+ *  CỐ TÌNH không await (fire-and-forget): lỗi mạng ở đây không nên chặn
+ *  thao tác đang làm trên giao diện cho các lượt lưu hồ sơ thường ngày —
+ *  chỉ log lại, người dùng vẫn thấy thay đổi cục bộ ngay lập tức. Ngoại lệ
+ *  DUY NHẤT: xoaToanBoDuLieu() (api.js) — đây là bước cuối của "xoá toàn
+ *  bộ dữ liệu" (R-14/R-25), BẮT BUỘC await để biết chắc hồ sơ đã thật sự
+ *  bị xoá trắng trước khi báo "đã xoá" cho học sinh (15/08/2026).
  *
  *  ⚠ BẮT BUỘC kèm auth_id trong payload dù cột này không đổi bao giờ: đây
  *  là upsert (INSERT ... ON CONFLICT DO UPDATE) — Postgres kiểm RLS
@@ -113,14 +117,16 @@ function chuyenTuHang(hang) {
  *  policy") — lỗi bị NUỐT do fire-and-forget chỉ console.error, phát hiện
  *  qua Playwright E2E thật (07/08/2026), không lộ ra khi test bằng script
  *  không qua RLS. */
-export function luuHoSo(hoSo) {
+export async function luuHoSo(hoSo) {
   const { id, ma_6_so, auth_id, ten_ao, tuoi, gioi, muc_van_dong, hap_thu_sat, hap_thu_kem,
     di_ung, di_ung_khac, kcal_muc_tieu, dam_muc_tieu, glucid_muc_tieu, lipid_muc_tieu,
-    canxi_muc_tieu, sat_muc_tieu, kem_muc_tieu, da_dong_y, ngay_dong_y_gan_nhat } = hoSo
+    canxi_muc_tieu, sat_muc_tieu, kem_muc_tieu, da_dong_y, ngay_dong_y_gan_nhat, truong_hoc } = hoSo
 
-  supabase.from('hoc_sinh').upsert({
+  const { error } = await supabase.from('hoc_sinh').upsert({
     id, ma_6_so, auth_id, ten_ao, tuoi, gioi, muc_van_dong, hap_thu_sat, hap_thu_kem,
     di_ung, di_ung_khac, kcal_muc_tieu, dam_muc_tieu, glucid_muc_tieu, lipid_muc_tieu,
-    canxi_muc_tieu, sat_muc_tieu, kem_muc_tieu, da_dong_y, ngay_dong_y_gan_nhat,
-  }, { onConflict: 'id' }).then(({ error }) => { if (error) console.error(error) })
+    canxi_muc_tieu, sat_muc_tieu, kem_muc_tieu, da_dong_y, ngay_dong_y_gan_nhat, truong_hoc,
+  }, { onConflict: 'id' })
+  if (error) { console.error(error); return { ok: false, loi: `Không lưu được hồ sơ: ${error.message}` } }
+  return { ok: true }
 }

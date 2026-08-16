@@ -355,15 +355,26 @@ function KhoiQuanGoiY() {
       nguonTrang="Trang Quán ăn gần đây"
     >
       <ul className="ds-quan">
-        {ds.map((q) => (
-          <li className="ds-quan__dong" key={q.id}>
-            <div className="day">
-              <p className="ds-quan__ten">{q.ten_quan}</p>
-              <p className="chu-nho chu-nhat">{q.khoang_gio_hoat_dong}</p>
-            </div>
-            <span className="chu-nho chu-nhat">{khoangCach(q.khoang_cach_m)}</span>
-          </li>
-        ))}
+        {ds.map((q) => {
+          // Địa chỉ/SĐT — 15/08/2026, yêu cầu riêng. Dòng phụ nhỏ gọn thêm
+          // dưới dòng chính, ẩn hẳn nếu cả 2 đều trống — KHÔNG đổi
+          // layQuanGoiY() hay thứ tự quán hiện ra (chỉ thêm thông tin).
+          const diaChiSdt = [q.dia_chi, q.so_dien_thoai ? `📞 ${q.so_dien_thoai}` : null]
+            .filter(Boolean)
+            .join(' · ')
+          return (
+            <li className="ds-quan__dong" key={q.id}>
+              <div className="ds-quan__hang-tren">
+                <div className="day">
+                  <p className="ds-quan__ten">{q.ten_quan}</p>
+                  <p className="chu-nho chu-nhat">{q.khoang_gio_hoat_dong}</p>
+                </div>
+                <span className="chu-nho chu-nhat">{khoangCach(q.khoang_cach_m)}</span>
+              </div>
+              {diaChiSdt && <p className="chu-be chu-nhat ds-quan__phu">{diaChiSdt}</p>}
+            </li>
+          )
+        })}
       </ul>
     </Khoi>
   )

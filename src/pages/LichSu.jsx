@@ -30,7 +30,7 @@ import MienTru from '../components/MienTru.jsx'
 import NhanTrangThai from '../components/NhanTrangThai.jsx'
 import TrangThaiRong from '../components/TrangThaiRong.jsx'
 import { layLichSuHopNhat, xoaDongLichSu } from '../data/api.js'
-import { tien, boDauChu } from '../lib/dinhDang.js'
+import { tien, boDauChu, gio } from '../lib/dinhDang.js'
 
 function nhanNgay(iso) {
   const d = new Date(iso)
@@ -41,11 +41,6 @@ function nhanNgay(iso) {
   if (ngayDong.getTime() === homNay.getTime()) return 'Hôm nay'
   if (ngayDong.getTime() === homQua.getTime()) return 'Hôm qua'
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
-}
-
-function gio(iso) {
-  const d = new Date(iso)
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
 export default function LichSu() {
@@ -142,6 +137,7 @@ export default function LichSu() {
                 <option value="ngoai_ke_hoach">Ngoài lộ trình</option>
                 <option value="goi_y_nhanh">Gợi ý nhanh</option>
                 <option value="tu_chon">Tự chọn</option>
+                <option value="bo_sung">Thực phẩm bổ sung</option>
               </select>
             </label>
 
@@ -198,7 +194,11 @@ export default function LichSu() {
                         ăn xong, đã chốt — rủi ro thấp hơn một tổng đang "chạy". */}
                     {d.kcal != null && (
                       <p className="chu-nho chu-nhat">
-                        {d.kcal} kcal · {d.dam}g đạm
+                        {d.kcal} kcal
+                        {/* Thực phẩm bổ sung (nhan="bo_sung") không có đạm
+                            trong schema phu_tro_ghi_nhan — guard riêng,
+                            tránh in "undefined g đạm" (xem sql/15). */}
+                        {d.dam != null && <> · {d.dam}g đạm</>}
                         {d.canxi != null && <> · {d.canxi}mg canxi</>}
                         {d.sat != null && <> · {d.sat}mg sắt</>}
                         {d.kem != null && <> · {d.kem}mg kẽm</>}

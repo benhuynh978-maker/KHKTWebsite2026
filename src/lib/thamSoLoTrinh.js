@@ -20,6 +20,20 @@ export const BUOI_THEO_SO_BUA = {
   4: ['sang', 'trua', 'chieu', 'toi'],
 }
 
+/* Sàn ngân sách/tuần — chặn cứng (10/08/2026, quyết định chính sách riêng,
+   không suy ra từ dữ liệu món): dưới mức này coi là tiếp tay gây hại, không
+   cho tạo lộ trình dù thuật toán vẫn kỹ thuật "chọn được món". Dùng CHUNG ở
+   cả FormLoTrinh.jsx (chặn ngay lúc nhập) và sinhLoTrinh.js (chặn lại ở tầng
+   thuật toán, phòng form bị bypass) — SỬA GIÁ TRỊ THÌ CHỈ SỬA Ở ĐÂY. */
+export const SAN_NGAN_SACH_TUAN = { 3: 500000, 4: 700000 }
+
+/* Bán kính mặc định (m) cho khung ngoài căng-tin, và sàn giá tối thiểu/bữa
+ *  (đ) khi tính từ ngân sách tuần — trước ở thẳng sinhLoTrinh.js, dời về
+ *  đây (15/08/2026) cho đúng nguyên tắc "sửa giá trị thì chỉ sửa ở đây"
+ *  đã áp dụng cho SAN_NGAN_SACH_TUAN ở trên. */
+export const BAN_KINH_MAC_DINH_M = 800
+export const SAN_GIA_MOT_BUA = 1000
+
 /* Task 3 (test/, chốt 02/08/2026) — chống lặp món xuyên ngày:
    - SO_UNG_VIEN_TOP: chỉ chọn trong nhóm N món điểm tốt nhất, không bao giờ
      rơi xuống giữa/cuối bảng xếp hạng.

@@ -17,11 +17,12 @@
 import { useState } from 'react'
 import CheckboxDongY from '../../components/CheckboxDongY.jsx'
 import ThongDiepAnToan from '../../components/ThongDiepAnToan.jsx'
+import MienTru from '../../components/MienTru.jsx'
 import Khoi from '../../components/Khoi.jsx'
 import { layHoSo, xacNhanDongY, tenNhomDiUng } from '../../data/api.js'
 import { TEN_MUC_DICH } from '../../lib/sinhLoTrinh.js'
-import { BUOI_THEO_SO_BUA } from '../../lib/thamSoLoTrinh.js'
-import { tien } from '../../lib/dinhDang.js'
+import { BUOI_THEO_SO_BUA, SAN_NGAN_SACH_TUAN } from '../../lib/thamSoLoTrinh.js'
+import { tien, TEN_MUC_VAN_DONG } from '../../lib/dinhDang.js'
 
 const SO_BUA_TUY_CHON = [
   { gia_tri: 3, nhan: 'Sáng · Trưa · Tối' },
@@ -31,7 +32,7 @@ const SO_BUA_TUY_CHON = [
 export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
   const hoSo = layHoSo()
 
-  const [nganSachTuan, datNganSachTuan] = useState(500000)
+  const [nganSachTuan, datNganSachTuan] = useState(SAN_NGAN_SACH_TUAN[3])
   const [mucDich, datMucDich] = useState('du_chat_trong_ngan_sach')
   const [soBua, datSoBua] = useState(3)
   const [ghiChu, datGhiChu] = useState('')
@@ -55,6 +56,10 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
       datLoiThieu('Nhập ngân sách tuần trước đã.')
       return
     }
+    if (Number(nganSachTuan) < SAN_NGAN_SACH_TUAN[soBua]) {
+      datLoiThieu(`Ngân sách tuần tối thiểu cho ${soBua} bữa/ngày là ${tien(SAN_NGAN_SACH_TUAN[soBua])} — mức này đảm bảo lộ trình có đủ món đạt dinh dưỡng cơ bản.`)
+      return
+    }
     if (!daTickDongY) {
       datLoiThieu('Cần tick đồng ý sử dụng app trước khi tạo lộ trình (R-34).')
       return
@@ -76,7 +81,7 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
         <div className="tom-tat-ho-so">
           <p className="chu-nho chu-nhat">Đã lấy từ Hồ sơ, không hỏi lại:</p>
           <p className="chu-nho">
-            {hoSo.tuoi} tuổi · {hoSo.gioi === 'nam' ? 'Nam' : 'Nữ'} · vận động {hoSo.muc_van_dong}
+            {hoSo.tuoi} tuổi · {hoSo.gioi === 'nam' ? 'Nam' : 'Nữ'} · vận động {TEN_MUC_VAN_DONG[hoSo.muc_van_dong] || hoSo.muc_van_dong}
             {hoSo.di_ung.length > 0 && <> · Dị ứng: {hoSo.di_ung.map(tenNhomDiUng).join(', ')}</>}
           </p>
           <p className="chu-nho chu-nhat">
@@ -92,7 +97,9 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
             value={nganSachTuan}
             onChange={(e) => datNganSachTuan(e.target.value)}
           />
-          <span className="chu-be chu-nhat">{tien(Number(nganSachTuan) || 0)}</span>
+          <span className="chu-be chu-nhat">
+            {tien(Number(nganSachTuan) || 0)} · Tối thiểu {tien(SAN_NGAN_SACH_TUAN[soBua])} cho {soBua} bữa/ngày
+          </span>
         </label>
 
         <label className="truong-form">
@@ -140,6 +147,7 @@ export default function FormLoTrinh({ coLoTrinhDangChay, onHuy, onTao }) {
         </button>
       </Khoi>
 
+      <MienTru />
       <ThongDiepAnToan />
     </>
   )

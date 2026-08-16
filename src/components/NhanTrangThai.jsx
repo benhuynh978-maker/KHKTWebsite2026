@@ -1,12 +1,13 @@
 /* =========================================================================
    R-08 + R-09 — NHÃN TRẠNG THÁI BỮA ĂN
    -------------------------------------------------------------------------
-   Bốn nhãn: Trong lộ trình · Ngoài lộ trình · Gợi ý nhanh · Tự chọn
+   Năm nhãn: Trong lộ trình · Ngoài lộ trình · Gợi ý nhanh · Tự chọn ·
+   Thực phẩm bổ sung (thêm 14/08/2026, cho phu_tro_ghi_nhan)
    (đổi tên 29/7: "Trong khung" → "Trong lộ trình", "Ngoài kế hoạch" →
    "Ngoài lộ trình" — chỉ đổi CHỮ hiển thị, key nội bộ trong_khung/
    ngoai_ke_hoach giữ nguyên để không phải sửa logic lọc/so khớp ở nơi khác.)
 
-   CẢ BỐN DÙNG CHUNG MỘT MÀU CHỮ TRUNG TÍNH.
+   CẢ NĂM DÙNG CHUNG MỘT MÀU CHỮ TRUNG TÍNH.
    Component này cố ý KHÔNG nhận prop màu / biến thể / mức độ.
 
    Lý do (Lịch sử §7.1): rủi ro không nằm ở một dòng đơn lẻ mà ở cấp độ
@@ -23,6 +24,7 @@ const NHAN = {
   ngoai_ke_hoach: 'Ngoài lộ trình',
   goi_y_nhanh: 'Gợi ý nhanh',
   tu_chon: 'Tự chọn',
+  bo_sung: 'Thực phẩm bổ sung',
 }
 
 export default function NhanTrangThai({ loai }) {

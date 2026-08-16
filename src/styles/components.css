@@ -24,13 +24,6 @@
   gap: var(--kc-3);
 }
 
-.thanh-dau__ten-app {
-  font-weight: 700;
-  font-size: var(--cd-lon);
-  letter-spacing: -0.02em;
-  color: var(--nhan-dam);
-}
-
 .thanh-dau__chao {
   font-size: var(--cd-phu);
   color: var(--chu-nhat);
@@ -259,11 +252,14 @@
    (không cuộn cả trang), ô nhập luôn dính đáy khối. Chỉ mượn bố cục/hiệu
    ứng, màu vẫn dùng đúng token của hệ thống — không mượn màu. */
 
+/* Cao theo nội dung, chặn trần 340px rồi mới cuộn — chiều cao cố định cũ để
+   lại ~290px trắng trơn ngay đầu Dashboard lúc mới vào (chỉ có câu chào). */
 .khu-tin-nhan {
   display: flex;
   flex-direction: column;
   gap: var(--kc-3);
-  height: 340px;
+  min-height: 120px;
+  max-height: 340px;
   overflow-y: auto;
   scroll-behavior: smooth;
 }
@@ -381,6 +377,102 @@
 }
 .dai-ngang > * { scroll-snap-align: start; }
 .dai-ngang--tren { margin-top: var(--kc-4); }
+
+/* --- Chat AI: cột món + khối bổ sung ngay dưới (Khối 5, 13/08/2026) -----
+   .the-mon vốn là item ngang cố định 168px trong .dai-ngang — bọc thêm 1
+   cột dọc để khối "Có thể bổ sung thêm" nằm NGAY DƯỚI đúng món của nó,
+   không lẫn sang món khác khi AI gợi ý nhiều món cùng lúc. */
+.khoi-mon-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-2);
+  flex: none;
+  width: 168px;
+}
+
+/* Khối "Có thể bổ sung thêm" (lib/goiYBoSung.js) — khung riêng, nhẹ hơn để
+   không lấn át thẻ món chính. Port nguyên từ test/style.css. */
+.goi-y-bo-sung {
+  background: var(--be-mat-chim);
+  border-radius: var(--bo-vua);
+  padding: var(--kc-3);
+}
+
+.goi-y-bo-sung__tieu-de {
+  font-weight: 600;
+  margin-bottom: var(--kc-2);
+}
+
+/* Tên thực phẩm gợi ý — thẻ nhỏ (chip), KHÔNG còn dạng danh sách "•" (đổi
+   15/08/2026, góp ý người dùng: bullet dành cho nhiều mục, ở đây luôn
+   đúng 1 gợi ý nên chip gọn hơn). Cùng khuôn màu trung tính với
+   .nhan-trang-thai (R-08/R-09 — không dùng màu cảnh báo). */
+.goi-y-bo-sung__mon {
+  display: inline-block;
+  font-size: var(--cd-nho);
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--bo-tron);
+  background: var(--be-mat);
+  border: 1px solid var(--vien-dam);
+  margin-bottom: var(--kc-2);
+}
+
+/* Nút "Ghi nhận" trong khối bổ sung — mở modal GhiNhanPhuTro.jsx. Chữ nút
+   RÚT NGẮN còn "Ghi nhận" (đổi 15/08/2026): trong khối chat, cột thẻ món
+   chỉ rộng 168px — chữ dài "Ghi nhận đã ăn/uống" bị xuống 2 dòng, nút bo
+   tròn hết cỡ phồng to bất thường (góp ý người dùng: "nhìn như bùi nhùi").
+   Rút ngắn để nút tự co theo đúng kích thước chữ, 1 dòng. */
+.goi-y-bo-sung__nut-ghi-nhan { margin-top: var(--kc-2); }
+
+/* --- Modal "Ghi nhận đã ăn/uống" (GhiNhanPhuTro.jsx, 14/08/2026) --------
+   Nổi TRÊN mọi modal khác — cùng lớp nền mờ .modal-nen, chỉ nâng z-index
+   (cùng mẫu .binh-luan-nen/.bao-cao-van-de-nen). Shell dùng lại .modal-mon
+   có sẵn, chỉ nội dung bên trong (.ghi-nhan-phu-tro*) là mới, port rút gọn
+   từ test/style.css — bỏ phần position:absolute/dropdown-nổi vì giờ đã
+   nằm trong modal riêng, không cần né đè lên nút khác nữa. */
+.ghi-nhan-phu-tro-nen { z-index: 60; }
+
+.ghi-nhan-phu-tro__o-tim {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--bo-nho);
+  border: 1px solid var(--vien-dam);
+  background: var(--be-mat);
+  font-size: var(--cd-thuong);
+}
+
+.ghi-nhan-phu-tro__ds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kc-1);
+  margin-top: var(--kc-2);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.ghi-nhan-phu-tro__muc {
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--bo-nho);
+  border: 1px solid var(--vien-dam);
+  background: var(--be-mat);
+  font-size: var(--cd-thuong);
+}
+.ghi-nhan-phu-tro__muc:hover { background: var(--be-mat-chim); }
+
+.ghi-nhan-phu-tro__huy {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: var(--kc-2);
+  cursor: pointer;
+  text-decoration: underline;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.ghi-nhan-phu-tro__xac-nhan > p:first-child { margin-bottom: var(--kc-2); font-weight: 600; }
 
 /* --- Ô tìm kiếm --------------------------------------------------------
    Dùng chung ở "Ăn gì hôm nay" và "Quán ăn gần đây". */
@@ -597,6 +689,43 @@
   padding: 10px;
 }
 
+/* --- Danh sách kết quả tìm quán (FormDeXuatMon.jsx) ---------------------
+   CỐ Ý khác hẳn kiểu nút viên thuốc (.nut) — đây là danh sách để CHỌN 1
+   mục có sẵn, không phải nút hành động, dễ nhầm với "Tìm quán"/"Không tìm
+   thấy..." nếu dùng chung kiểu. Không dùng icon (yêu cầu riêng) — phân
+   biệt bằng: khung bo góc riêng biệt + nhãn nhỏ phía trên + từng dòng
+   vuông vắn có vạch ngăn, khác hẳn hình viên thuốc rời của nút. */
+.ket-qua-tim-quan { margin: var(--kc-2) 0; }
+.ket-qua-tim-quan__nhan { margin: 0 0 6px; }
+
+.ket-qua-tim-quan__ds {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--vien);
+  border-radius: var(--bo-vua);
+  overflow: hidden;
+  background: var(--be-mat);
+}
+.ket-qua-tim-quan__ds li + li { border-top: 1px solid var(--vien); }
+
+.ket-qua-tim-quan__dong {
+  display: block;
+  width: 100%;
+  padding: 11px var(--kc-3);
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  text-align: left;
+  font-size: var(--cd-phu);
+  cursor: pointer;
+}
+.ket-qua-tim-quan__dong:hover,
+.ket-qua-tim-quan__dong:focus-visible {
+  background: var(--be-mat-chim);
+  border-left-color: var(--nhan-dam);
+}
+
 /* --- Giá + trung bình sao, CHỈ ĐỌC (DanhGiaSao.jsx) — thêm 29/7 --------
    Mỗi ô sao chồng 2 lớp: nền xám (luôn đủ 5 sao) + lớp vàng cắt theo % để
    tô đúng phần thập phân của điểm trung bình (không có ảnh, thuần CSS). */
@@ -660,6 +789,19 @@
 }
 .mon-binh-luan:hover { background: var(--vien); }
 .mon-binh-luan__xem { color: var(--nhan-dam); font-weight: 600; }
+
+/* --- Nút "Báo cáo vấn đề" (ModalMon.jsx) + modal BaoCaoVanDe.jsx -------- */
+.bao-cao-van-de-nut {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+/* Nổi TRÊN modal chi tiết món — cùng lý do/z-index với .binh-luan-nen. */
+.bao-cao-van-de-nen { z-index: 60; }
 
 /* --- Bảng nổi bình luận (BangBinhLuan.jsx) — thêm 29/7 -----------------
    Nổi TRÊN modal chi tiết (.modal-nen dùng z-index 50) — cùng lớp nền mờ
@@ -759,6 +901,7 @@
 }
 
 .thong-tin-goi-y__nut {
+  position: relative;
   width: 18px;
   height: 18px;
   flex: none;
@@ -775,6 +918,15 @@
   cursor: help;
   transition: color .15s, border-color .15s;
 }
+/* Vòng tròn 18px quá nhỏ để chạm bằng ngón tay. Nới VÙNG CHẠM ra 34px bằng
+   lớp phủ trong suốt — hình dạng nhìn thấy giữ nguyên, giao diện máy tính
+   không đổi. Chỉ nới đúng 8px mỗi bên để không cướp cú bấm của chữ bên cạnh. */
+.thong-tin-goi-y__nut::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
 .thong-tin-goi-y__nut:hover,
 .thong-tin-goi-y__nut:focus-visible {
   color: var(--nhan-dam);
@@ -803,24 +955,17 @@
   pointer-events: none;
 }
 
-.thong-tin-goi-y:hover .thong-tin-goi-y__bong,
-.thong-tin-goi-y__nut:focus-visible ~ .thong-tin-goi-y__bong,
-.thong-tin-goi-y__bong--mo {
+/* Bong bóng portal ra document.body (14/08/2026, xem ghi chú đầu
+   ThongTinGoiY.jsx) — vị trí tính bằng JS (getBoundingClientRect) nên
+   không cần position:absolute/transform căn giữa hay opacity ẩn-hiện qua
+   CSS nữa; chỉ mount vào DOM khi cần nên luôn hiện ngay lúc render. */
+.thong-tin-goi-y__bong--noi {
+  position: fixed;
+  z-index: 100;
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* Mở lên trên — xem ghi chú `moLen` ở ThongTinGoiY.jsx. */
-.thong-tin-goi-y__bong--len {
-  top: auto;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%) translateY(4px);
-}
-.thong-tin-goi-y:hover .thong-tin-goi-y__bong--len,
-.thong-tin-goi-y__nut:focus-visible ~ .thong-tin-goi-y__bong--len,
-.thong-tin-goi-y__bong--len.thong-tin-goi-y__bong--mo {
-  transform: translateX(-50%) translateY(0);
+  transform: none;
+  transition: none;
 }
 
 /* --- Checkbox đồng ý (R-34) --------------------------------------------- */

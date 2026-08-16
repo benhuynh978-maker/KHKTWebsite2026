@@ -97,9 +97,11 @@ export function xoaGhiNhan(id) {
 
 /** Cài đặt §3.3.2 — xoá thật. Nhờ ON DELETE CASCADE trên 2 khoá ngoại
  *  (lo_trinh_khung → lo_trinh, lo_trinh_ghi_nhan → lo_trinh_khung), chỉ
- *  cần xoá bảng gốc — Supabase tự xoá dây chuyền cả khung lẫn ghi nhận. */
-export function xoaToanBoLoTrinhCuaHocSinh(ma6So) {
-  supabase.from('lo_trinh').delete().eq('ma_hoc_sinh', ma6So).then(({ error }) => {
-    if (error) console.error(error)
-  })
+ *  cần xoá bảng gốc — Supabase tự xoá dây chuyền cả khung lẫn ghi nhận.
+ *  Trả { ok, loi } — xoaToanBoDuLieu() (api.js) await để biết chắc đã xoá
+ *  thật hay chưa trước khi báo "đã xoá" cho học sinh (15/08/2026). */
+export async function xoaToanBoLoTrinhCuaHocSinh(ma6So) {
+  const { error } = await supabase.from('lo_trinh').delete().eq('ma_hoc_sinh', ma6So)
+  if (error) return { ok: false, loi: `Không xoá được lộ trình: ${error.message}` }
+  return { ok: true }
 }

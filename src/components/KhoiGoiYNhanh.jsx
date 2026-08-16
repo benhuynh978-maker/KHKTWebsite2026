@@ -17,9 +17,12 @@
    thái lâu dài).
    ========================================================================= */
 
-import { useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Khoi from './Khoi.jsx'
 import TheMon from './TheMon.jsx'
+import MienTru from './MienTru.jsx'
+import GhiNhanPhuTro from './GhiNhanPhuTro.jsx'
+import ThongTinGoiY from './ThongTinGoiY.jsx'
 import { timMonChat, traCuuMonTheoTen, traCuuQuan } from '../data/api.js'
 import { THOI_GIAN_CHO_TOI_DA_MS } from '../data/supabase/client.js'
 
@@ -42,6 +45,51 @@ const NOI_DUNG_CHIP = {
   nhieu_canxi: 'Gợi ý món nhiều canxi.',
   nhieu_sat: 'Gợi ý món nhiều sắt.',
   nhieu_kem: 'Gợi ý món nhiều kẽm.',
+}
+
+/** Gemini hay trả lời kèm markdown **đậm** (tên món, nhãn giá...) — khung
+ *  chat trước đây hiện nguyên dấu ** cho học sinh xem (15/08/2026, phát
+ *  hiện lúc kiểm giao diện mobile). Chỉ xử lý đúng **đậm**, không cần cả
+ *  thư viện markdown cho 1 kiểu định dạng duy nhất Gemini hay dùng. */
+function chuCoDam(dong) {
+  return dong.split(/(\*\*[^*]+\*\*)/g).map((doan, i) => (
+    doan.startsWith('**') && doan.endsWith('**')
+      ? <strong key={i}>{doan.slice(2, -2)}</strong>
+      : doan
+  ))
+}
+
+/* Đòi PHẢI có khoảng trắng sau dấu, nhờ vậy "**Món ăn**" (in đậm) không bị
+   nhận nhầm là gạch đầu dòng. */
+const DAU_GACH_DAU_DONG = /^\s*[-*•]\s+/
+
+/** Cả câu trả lời trước đây nhét vào MỘT thẻ <p> nên mọi dấu xuống dòng của
+ *  Gemini bị nuốt: danh sách 4 mục dồn thành một đoạn dài, dấu "-"/"*" nằm
+ *  lửng giữa câu. Dựng lại theo từng dòng — gom dòng gạch đầu dòng liên tiếp
+ *  thành <ul> thật, phần còn lại thành đoạn riêng. */
+function dungVanBanAI(vanBan) {
+  if (!vanBan) return vanBan
+
+  const khoi = []
+  let dsDangGom = null
+  const chotDs = () => { if (dsDangGom) { khoi.push(dsDangGom); dsDangGom = null } }
+
+  vanBan.split('\n').map((d) => d.trim()).filter(Boolean).forEach((d, i) => {
+    if (DAU_GACH_DAU_DONG.test(d)) {
+      if (!dsDangGom) dsDangGom = { loai: 'ds', id: i, muc: [] }
+      dsDangGom.muc.push({ id: i, chu: d.replace(DAU_GACH_DAU_DONG, '') })
+    } else {
+      chotDs()
+      khoi.push({ loai: 'doan', id: i, chu: d })
+    }
+  })
+  chotDs()
+
+  return khoi.map((k) => (
+    k.loai === 'ds'
+      ? <ul className="chat-ds" key={`ds-${k.id}`}>{k.muc.map((m) => <li key={m.id}>{chuCoDam(m.chu)}</li>)}</ul>
+      : <p className="chat-doan" key={`doan-${k.id}`}>{chuCoDam(k.chu)}</p>
+  ))
 }
 
 async function goiServerChat(contents) {
@@ -89,6 +137,34 @@ export default function KhoiGoiYNhanh({ onChonMon }) {
   // Không phải state React — chỉ ảnh hưởng luồng gửi/nhận, không cần vẽ lại.
   const lichSuGemini = useRef([])
   const maMonDaGoiYTrongPhien = useRef(new Set())
+
+  // Nút "Ghi nhận" ở khối bổ sung — THẬT từ 14/08/2026 (trước đó chỉ demo,
+  // xem NHAT-KY-AI.md). Mở modal GhiNhanPhuTro.jsx tìm/chọn 1 sản phẩm THẬT
+  // (san_pham_phu_tro, khác thuc_pham_tham_khao đang gợi ý) rồi ghi vào
+  // phu_tro_ghi_nhan. `dangMoGhiNhan` giữ khoá `${idTin}:${idMon}` của
+  // dòng đang mở modal (null = không mở). `daGhiNhanBoSung` chỉ là NHẬT
+  // KÝ HIỂN THỊ trong phiên (không chặn ghi lại — sql/15 cố ý cho phép mỗi
+  // lần ăn là 1 dòng mới), nút KHÔNG khoá sau khi ghi nhận.
+  const [dangMoGhiNhan, datDangMoGhiNhan] = useState(null)
+  const [daGhiNhanBoSung, datDaGhiNhanBoSung] = useState(new Set())
+
+  // Khu tin nhắn cuộn riêng và bị chặn trần chiều cao — không tự kéo xuống
+  // thì câu trả lời mới nằm khuất dưới đáy, học sinh tưởng AI không trả lời.
+  const khuTinNhanRef = useRef(null)
+  useLayoutEffect(() => {
+    const el = khuTinNhanRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [tinNhan])
+
+  // <textarea rows=1> không tự cao lên theo nội dung — gõ câu dài chỉ thấy
+  // một dòng. Trần 160px khớp `max-height` của .o-nhap-chat.
+  const oNhapRef = useRef(null)
+  useEffect(() => {
+    const el = oNhapRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+  }, [dangGo])
 
   const guiTin = async (noiDung) => {
     if (dangGui) return
@@ -165,8 +241,9 @@ export default function KhoiGoiYNhanh({ onChonMon }) {
   }
 
   return (
+    <>
     <Khoi tieuDe="Gợi ý nhanh" phu="Chat để tìm nhanh một bữa, không cần lộ trình">
-      <div className="khu-tin-nhan">
+      <div className="khu-tin-nhan" ref={khuTinNhanRef}>
         {tinNhan.map((t) => {
           if (t.loai === 'dangGo') {
             return (
@@ -192,11 +269,39 @@ export default function KhoiGoiYNhanh({ onChonMon }) {
           }
           return (
             <div className={`chat-bong chat-bong--ai${t.vaiTro === 'loi' ? ' chat-bong--loi' : ''}`} key={t.id}>
-              <p>{t.noiDung}</p>
+              <div className="chat-noi-dung">{dungVanBanAI(t.noiDung)}</div>
               {t.monList && t.monList.length > 0 && (
                 <>
                   <div className="dai-ngang dai-ngang--tren">
-                    {t.monList.map((m) => <TheMon key={m.id} mon={m} onChon={onChonMon} />)}
+                    {t.monList.map((m) => (
+                      <div className="khoi-mon-chat" key={m.id}>
+                        <TheMon mon={m} onChon={onChonMon} />
+                        {m.goiYBoSung && (
+                          <div className="goi-y-bo-sung">
+                            <p className="goi-y-bo-sung__tieu-de chu-nhat">
+                              Có thể bổ sung thêm (tuỳ chọn){' '}
+                              <ThongTinGoiY noiDung="Gợi ý này giúp bù phần năng lượng/canxi/sắt/kẽm còn thiếu so với mục tiêu bữa vừa ghi nhận — không bắt buộc, chỉ là gợi ý thêm nếu bạn muốn." />
+                            </p>
+                            <p className="goi-y-bo-sung__mon">{m.goiYBoSung.phuTro.ten}</p>
+                            <button
+                              type="button"
+                              className="nut nut--chip goi-y-bo-sung__nut-ghi-nhan"
+                              onClick={() => datDangMoGhiNhan({
+                                khoa: `${t.id}:${m.id}`,
+                                tuKhoaBanDau: m.goiYBoSung.phuTro.ten,
+                                diUngDaChon: m.diUngDaChon,
+                              })}
+                            >
+                              Ghi nhận
+                            </button>
+                            {daGhiNhanBoSung.has(`${t.id}:${m.id}`) && (
+                              <p className="chu-nho chu-nhat">✓ Đã ghi nhận trong phiên này — vẫn ghi thêm được nếu ăn tiếp.</p>
+                            )}
+                            <MienTru gonGang />
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                   {/* §1.2 — Dashboard KHÔNG ghi dữ liệu, không có nút
                       "chọn món"/"tick bữa" ở đây. */}
@@ -227,6 +332,7 @@ export default function KhoiGoiYNhanh({ onChonMon }) {
       <form className="khu-nhap-chat" onSubmit={guiTuDo}>
         <textarea
           rows={1}
+          ref={oNhapRef}
           className="o-nhap-chat"
           placeholder="Gõ yêu cầu của bạn..."
           value={dangGo}
@@ -236,5 +342,18 @@ export default function KhoiGoiYNhanh({ onChonMon }) {
         <button className="nut nut--chinh nut--gui-chat" type="submit" disabled={!dangGo.trim() || dangGui}>Gửi</button>
       </form>
     </Khoi>
+
+    {dangMoGhiNhan && (
+      <GhiNhanPhuTro
+        tuKhoaBanDau={dangMoGhiNhan.tuKhoaBanDau}
+        diUngDaChon={dangMoGhiNhan.diUngDaChon}
+        onDong={() => datDangMoGhiNhan(null)}
+        onGhiNhanXong={() => {
+          const khoa = dangMoGhiNhan.khoa
+          datDaGhiNhanBoSung((s) => new Set(s).add(khoa))
+        }}
+      />
+    )}
+    </>
   )
 }

@@ -15,9 +15,17 @@
    Lưu ý riêng tư: thanh đầu trang hiển thị TÊN ẢO, không hiển thị mã 6 số.
    Mã 6 số vừa là định danh vừa là thứ dùng để đăng nhập, nên không đặt nó
    thường trực trên màn hình. Chỉ trang Cài đặt §3.2 mới hiện mã.
+
+   Thêm 12/08/2026 (yêu cầu riêng) — lối vào "Góp ý / Báo cáo" đặt Ở ĐÂY
+   (thanh đầu, dùng chung mọi trang) thay vì lặp lại nút riêng ở từng
+   trang: dẫn thẳng tới khối "Liên hệ hỗ trợ" đã có sẵn ở Cài đặt (không
+   xây form/bảng mới), chỉ thêm lối vào NGẮN HƠN.
+
+   Sửa cùng ngày (yêu cầu riêng) — bỏ chữ "Ăn đủ chất" (không dẫn tới đâu,
+   chỉ nằm cho có), đảo vị trí: trái = lời chào, phải = "Góp ý / Báo cáo".
    ========================================================================= */
 
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { layHoSo } from '../data/api.js'
 
 const MUC = [
@@ -37,8 +45,8 @@ export default function BoCuc() {
     <div className="vo-trang">
       <header className="thanh-dau">
         <div className="thanh-dau__trong">
-          <span className="thanh-dau__ten-app">Ăn đủ chất</span>
           <span className="thanh-dau__chao">Chào {hoSo.ten_ao}</span>
+          <Link className="lien-ket" to="/cai-dat#lien-he-ho-tro">Góp ý / Báo cáo</Link>
         </div>
       </header>
 

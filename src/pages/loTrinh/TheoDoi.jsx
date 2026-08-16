@@ -21,11 +21,14 @@ import { useState } from 'react'
 import Khoi from '../../components/Khoi.jsx'
 import TheMon from '../../components/TheMon.jsx'
 import NhanTrangThai from '../../components/NhanTrangThai.jsx'
+import MienTru from '../../components/MienTru.jsx'
+import GhiNhanPhuTro from '../../components/GhiNhanPhuTro.jsx'
+import ThongTinGoiY from '../../components/ThongTinGoiY.jsx'
 import { TEN_BUOI, TEN_NGUON, tien } from '../../lib/dinhDang.js'
 import { TEN_MUC_DICH } from '../../lib/sinhLoTrinh.js'
 import {
   layTatCaKhungTheoNgay, layTatCaGhiNhanLoTrinh, layThuTuNgayHomNay,
-  layMonKhopKhung, ghiNhanBuaLoTrinh,
+  layMonKhopKhung, ghiNhanBuaLoTrinh, layGoiYBoSungHomNayLoTrinh, layHoSo,
 } from '../../data/api.js'
 
 const TEN_THU = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
@@ -49,9 +52,20 @@ export default function TheoDoi({ loTrinh, onHuy }) {
   const [cheDoNgoaiKeHoach, datCheDoNgoaiKeHoach] = useState(false)
   const [tenMonTuGo, datTenMonTuGo] = useState('')
 
+  // Bảng nổi gợi ý bổ sung "hôm nay" (14/08/2026) — dangMoGhiNhanTuGoiY:
+  // đã bấm "Ghi nhận" trên bảng gợi ý, chuyển sang modal GhiNhanPhuTro thật
+  // (thay hẳn bảng gợi ý, không chồng 2 modal). tenGoiYDaBoQua: nhớ đúng
+  // TÊN gợi ý vừa bấm "Bỏ qua" — nếu sau đó gợi ý đổi sang thực phẩm khác
+  // (vd ghi thêm bữa làm phần thiếu đổi) thì bảng vẫn hiện lại, không khoá
+  // cứng cả phiên.
+  const [dangMoGhiNhanTuGoiY, datDangMoGhiNhanTuGoiY] = useState(false)
+  const [tenGoiYDaBoQua, datTenGoiYDaBoQua] = useState(null)
+
   const khungTheoNgay = layTatCaKhungTheoNgay()
   const ghiNhan = layTatCaGhiNhanLoTrinh()
   const thuTuHomNay = layThuTuNgayHomNay()
+  const goiYBoSungHomNay = layGoiYBoSungHomNayLoTrinh()
+  const hienBangGoiY = !!goiYBoSungHomNay && goiYBoSungHomNay.phuTro.ten !== tenGoiYDaBoQua
 
   const timGhiNhan = (khungId) => ghiNhan.find((g) => g.lo_trinh_khung_id === khungId)
 
@@ -166,9 +180,9 @@ export default function TheoDoi({ loTrinh, onHuy }) {
                 return (
                   <div className="o-bua" key={khung.id}>
                     <button
-                      className={`o-bua__hang${laTuongLai ? ' o-bua__hang--khoa' : ''}`}
+                      className={`o-bua__hang${laTuongLai || gn ? ' o-bua__hang--khoa' : ''}`}
                       type="button"
-                      disabled={laTuongLai}
+                      disabled={laTuongLai || !!gn}
                       onClick={() => (dangMoONay ? dongO() : moO(khung, thu_tu_ngay))}
                     >
                       <span className="o-bua__buoi">{TEN_BUOI[khung.buoi]} ({TEN_NGUON[khung.nguon]})</span>
@@ -254,6 +268,40 @@ export default function TheoDoi({ loTrinh, onHuy }) {
           </Khoi>
         )
       })}
+
+      {hienBangGoiY && !dangMoGhiNhanTuGoiY && (
+        <div className="modal-nen" onClick={() => datTenGoiYDaBoQua(goiYBoSungHomNay.phuTro.ten)}>
+          <div className="modal-mon" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="modal-mon__than">
+              <h3 className="modal-mon__ten">
+                Có thể bổ sung thêm hôm nay (tuỳ chọn){' '}
+                <ThongTinGoiY noiDung="Gợi ý này giúp bù phần năng lượng/canxi/sắt/kẽm còn thiếu so với mục tiêu bữa vừa ghi nhận — không bắt buộc, chỉ là gợi ý thêm nếu bạn muốn." />
+              </h3>
+              <p className="goi-y-bo-sung__mon">{goiYBoSungHomNay.phuTro.ten}</p>
+
+              <div className="hang-nut-chon-mon">
+                <button className="nut nut--chinh" onClick={() => datDangMoGhiNhanTuGoiY(true)} type="button">
+                  Ghi nhận
+                </button>
+                <button className="nut" onClick={() => datTenGoiYDaBoQua(goiYBoSungHomNay.phuTro.ten)} type="button">
+                  Bỏ qua
+                </button>
+              </div>
+
+              <MienTru gonGang />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dangMoGhiNhanTuGoiY && (
+        <GhiNhanPhuTro
+          tuKhoaBanDau={goiYBoSungHomNay.phuTro.ten}
+          diUngDaChon={layHoSo().di_ung}
+          onDong={() => datDangMoGhiNhanTuGoiY(false)}
+          onGhiNhanXong={() => { datDangMoGhiNhanTuGoiY(false); lamMoi() }}
+        />
+      )}
     </>
   )
 }

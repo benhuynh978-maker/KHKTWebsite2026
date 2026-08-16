@@ -42,8 +42,11 @@ export default function XemLoTrinh({ form, ketQuaTienKiem, onApDung, onHuyLamLai
 
       {/* Pha 2 (07/08/2026) — thuật toán LUÔN sinh được lộ trình (trừ dị
           ứng chặn cứng ở Giai đoạn 2), những điểm chưa đạt tuyệt đối
-          (ngân sách/sàn canxi-sắt/ghi chú tránh cay) hiện ở đây dưới dạng
-          cảnh báo thay vì chặn — xem lib/sinhLoTrinh.js. */}
+          (ngân sách/ghi chú tránh cay/thiếu quán đúng nguồn/không tìm được
+          món phù hợp) hiện ở đây dưới dạng cảnh báo thay vì chặn — xem
+          lib/sinhLoTrinh.js. KHÔNG bao giờ có sàn canxi/sắt trong mảng này
+          — CỐ Ý không cảnh báo ngưỡng dinh dưỡng (CLAUDE.md mục C, xem
+          comment ⚠ ở sinhLoTrinh.js) — đừng thêm nhầm nếu sửa sau này. */}
       {canhBao && canhBao.length > 0 && (
         <div className="canh-bao-lo-trinh">
           <p className="chu-nho chu-nhat">Vài điểm chưa đạt tuyệt đối trong lộ trình mô phỏng dưới đây:</p>

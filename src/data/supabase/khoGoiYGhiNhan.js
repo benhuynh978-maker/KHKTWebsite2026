@@ -54,9 +54,12 @@ export function xoaMotGoiYGhiNhan(id) {
   })
 }
 
-/** Cài đặt §3.3.2 — R-14/R-25, xoá TOÀN BỘ của đúng 1 học sinh. */
-export function xoaToanBoGoiYCuaHocSinh(ma6So) {
-  supabase.from('goi_y_ghi_nhan').delete().eq('ma_hoc_sinh', ma6So).then(({ error }) => {
-    if (error) console.error(error)
-  })
+/** Cài đặt §3.3.2 — R-14/R-25, xoá TOÀN BỘ của đúng 1 học sinh. Trả
+ *  { ok, loi } — xoaToanBoDuLieu() (api.js) await để biết chắc đã xoá
+ *  thật hay chưa trước khi báo "đã xoá" cho học sinh (15/08/2026, trước đó
+ *  fire-and-forget khiến giao diện luôn báo thành công dù lỗi mạng). */
+export async function xoaToanBoGoiYCuaHocSinh(ma6So) {
+  const { error } = await supabase.from('goi_y_ghi_nhan').delete().eq('ma_hoc_sinh', ma6So)
+  if (error) return { ok: false, loi: `Không xoá được gợi ý ghi nhận: ${error.message}` }
+  return { ok: true }
 }

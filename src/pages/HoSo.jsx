@@ -11,16 +11,39 @@
    lưu được.
    ========================================================================= */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Khoi from '../components/Khoi.jsx'
 import MienTru from '../components/MienTru.jsx'
 import CheckboxDongY from '../components/CheckboxDongY.jsx'
 import { layHoSo, capNhatHoSo, layNhomDiUng } from '../data/api.js'
 import { tinhMucTieuDinhDuong } from '../lib/traBangDinhDuong.js'
+import { taiDanhSachTruong } from '../data/supabase/khoTruong.js'
 
 export default function HoSo() {
   const hoSo = layHoSo()
+
+  // Trường học — CHỈ XEM, không có ô sửa ở đây lẫn bất kỳ đâu khác (chọn
+  // đúng 1 lần ở ChonTruongHoc.jsx, xem ghi chú ở đó). Tự tra tên hiển thị
+  // từ mã lưu trong hồ sơ — danh sách trường không lưu sẵn trong bộ nhớ
+  // dùng chung vì chỉ cần ở đúng 2 chỗ (đây và màn chọn lần đầu).
+  //
+  // undefined = chưa tải xong (hiện "Đang tải…"), null = tải xong nhưng
+  // không tra được tên (hiện mã thô làm phương án cuối), chuỗi = tên thật.
+  // Phát hiện 10/08/2026 qua kiểm chứng thật: nếu chỉ có 2 trạng thái
+  // (null/chuỗi) như bản trước, lúc mạng chậm sẽ hiện mã thô (vd "HVHCM")
+  // thay vì "Đang tải…" — không sai dữ liệu, chỉ xấu giao diện.
+  const [tenTruong, datTenTruong] = useState(undefined)
+  useEffect(() => {
+    let huy = false
+    datTenTruong(undefined)
+    taiDanhSachTruong().then((kq) => {
+      if (huy || !kq.ok) { datTenTruong(null); return }
+      const truong = kq.danhSach.find((t) => t.ma === hoSo.truong_hoc)
+      datTenTruong(truong?.ten_truong ?? null)
+    })
+    return () => { huy = true }
+  }, [hoSo.truong_hoc])
 
   const [tenAo, datTenAo] = useState(hoSo.ten_ao)
   const [tuoi, datTuoi] = useState(hoSo.tuoi)
@@ -174,6 +197,18 @@ export default function HoSo() {
 
           <p className="chu-be chu-nhat">
             Dị ứng ngoài 14 nhóm này (hiếm)? Báo qua <Link className="lien-ket" to="/cai-dat">Liên hệ hỗ trợ</Link>.
+          </p>
+        </div>
+
+        {/* Trường học — CHỈ XEM, không có ô sửa (chọn 1 lần, xem
+            ChonTruongHoc.jsx). Dùng để lọc quán ăn đúng khu vực trường. */}
+        <div className="muc-tieu-khoa">
+          <p className="muc-tieu-khoa__tieu-de">Trường học (không thể đổi)</p>
+          <p className="muc-tieu-khoa__so">
+            {tenTruong === undefined ? 'Đang tải…' : tenTruong ?? hoSo.truong_hoc ?? '—'}
+          </p>
+          <p className="chu-be chu-nhat">
+            Chỉ chọn được một lần lúc mới dùng app, dùng để chỉ gợi ý quán ăn xung quanh đúng khu vực trường bạn.
           </p>
         </div>
 

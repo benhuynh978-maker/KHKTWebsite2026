@@ -11,10 +11,14 @@
    lý bình thường nếu không liên quan — nên cảnh báo R-27 hiển thị SONG
    SONG với kết quả tiền kiểm, không thay thế nó.
 
-   Pha 2 (07/08/2026) — chỉ còn 1 tầng có thể "bất khả" (dị ứng, an toàn
-   tính mạng). Ngân sách/tồn kho/sàn dinh dưỡng/ghi chú không còn chặn ở
-   đây nữa — luôn tạo được lộ trình, những điểm chưa đạt tuyệt đối hiện ở
-   Giai đoạn 3 dưới dạng cảnh báo (xem lib/sinhLoTrinh.js, XemLoTrinh.jsx).
+   Pha 2 (07/08/2026) — chỉ còn tầng dị ứng (an toàn tính mạng) có thể
+   "bất khả". Tồn kho/sàn dinh dưỡng/ghi chú không chặn ở đây — luôn tạo
+   được lộ trình, những điểm chưa đạt tuyệt đối hiện ở Giai đoạn 3 dưới
+   dạng cảnh báo (xem lib/sinhLoTrinh.js, XemLoTrinh.jsx).
+
+   Thêm 10/08/2026 — tầng 'ngan_sach' (sàn ngân sách/tuần tối thiểu, quyết
+   định chính sách riêng): cũng "bất khả" ở màn này, không phải cảnh báo,
+   vì dưới sàn coi là tiếp tay gây hại chứ không phải vấn đề chất lượng.
    ========================================================================= */
 
 import { useEffect, useState } from 'react'
@@ -25,9 +29,10 @@ import { tien } from '../../lib/dinhDang.js'
 
 const TEN_TANG = {
   4: 'Loại trừ cá nhân (an toàn dị ứng)',
+  ngan_sach: 'Sàn ngân sách tối thiểu',
 }
 
-export default function ManCho({ form, onKhaThi, onBatKha, onQuayLai, onHuy }) {
+export default function ManCho({ form, onKhaThi, onQuayLai, onHuy }) {
   const [ketQua, datKetQua] = useState(null) // null = đang chạy
 
   useEffect(() => {

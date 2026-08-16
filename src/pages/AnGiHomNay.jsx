@@ -62,8 +62,12 @@ export default function AnGiHomNay() {
       }
       if (!monAnToanChoDiUng(m, dsDiUngCanLoc)) return false
       if (locBuoi !== 'tat_ca' && !m.buoi.includes(locBuoi)) return false
-      if (m.gia > giaToiDa) return false
-      if (m.quan.khoang_cach_m > khoangCachToiDa) return false
+      // giaToiDa/khoangCachToiDa === mức trần thanh trượt nghĩa "không giới
+      // hạn" (xem hiển thị bên dưới) — chỉ lọc khi có giới hạn THẬT, và khi
+      // đó món chưa có giá/khoảng cách (null) phải bị loại, không mặc định
+      // coi là đạt (null > số ép về false, từng khiến món luôn lọt qua).
+      if (giaToiDa < 50000 && (m.gia == null || m.gia > giaToiDa)) return false
+      if (khoangCachToiDa < 2000 && (m.quan.khoang_cach_m == null || m.quan.khoang_cach_m > khoangCachToiDa)) return false
       return true
     })
 

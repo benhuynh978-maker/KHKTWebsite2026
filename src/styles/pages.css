@@ -227,15 +227,22 @@
 
 .ds-quan__dong {
   display: flex;
-  align-items: center;
-  gap: var(--kc-3);
+  flex-direction: column;
+  gap: 2px;
   padding: var(--kc-3) 0;
   border-bottom: 1px solid var(--vien);
 }
 .ds-quan__dong:last-child { border-bottom: none; padding-bottom: 0; }
 .ds-quan__dong:first-child { padding-top: 0; }
 
+/* Hàng trên (tên quán/giờ mở bên trái, khoảng cách bên phải) — tách khỏi
+   .ds-quan__dong (15/08/2026) để thêm dòng phụ địa chỉ/SĐT bên dưới mà
+   không phá layout hàng ngang cũ. */
+.ds-quan__hang-tren { display: flex; align-items: center; gap: var(--kc-3); }
+
 .ds-quan__ten { font-weight: 600; font-size: var(--cd-phu); }
+
+.ds-quan__phu { margin: 0; }
 
 /* --- Dashboard · Khối 5: Gợi ý nhanh ---------------------------------- */
 
@@ -273,6 +280,23 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* Câu trả lời AI dựng theo dòng (dungVanBanAI ở KhoiGoiYNhanh.jsx) — đoạn
+   văn và danh sách gạch đầu dòng, thay cho một khối chữ dồn cục. */
+.chat-noi-dung { display: flex; flex-direction: column; gap: var(--kc-2); }
+
+.chat-doan { margin: 0; }
+
+.chat-ds {
+  margin: 0;
+  padding-left: var(--kc-4);
+  list-style: disc;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-ds li { list-style: disc; }
 
 /* --- Quán ăn gần đây · mỗi khối quán ----------------------------------- */
 
@@ -315,6 +339,77 @@
   font-size: var(--cd-thuong);
   font-family: var(--font);
   resize: vertical;
+}
+
+/* --- Cặp giờ mở-đóng (FormDeXuatMon.jsx) -------------------------------- */
+.cap-gio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cap-gio input[type='time'] {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: var(--bo-nho);
+  border: 1px solid var(--vien-dam);
+  background: var(--be-mat);
+  font-size: var(--cd-thuong);
+  font-family: var(--font);
+}
+.cap-gio span { color: var(--chu-mo); flex: none; }
+
+/* --- Tick dị ứng kèm giải thích (ChonDiUngCoGiaiThich.jsx) --------------
+   CỐ Ý khác bố cục lưới của .chon-di-ung ở Hồ sơ — mỗi dòng cần chỗ cho
+   phần giải thích mở rộng bên dưới, xếp lưới nhiều cột sẽ vỡ dòng. */
+.chon-di-ung-gt {
+  display: flex;
+  flex-direction: column;
+  margin: var(--kc-2) 0;
+  border: 1px solid var(--vien);
+  border-radius: var(--bo-vua);
+  overflow: hidden;
+}
+.chon-di-ung-gt__dong {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--kc-2);
+  padding: 8px var(--kc-3);
+}
+.chon-di-ung-gt__dong + .chon-di-ung-gt__dong { border-top: 1px solid var(--vien); }
+
+.chon-di-ung-gt__nhan {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--cd-phu);
+  cursor: pointer;
+  padding: 3px 0;
+}
+.chon-di-ung-gt__nhan input { accent-color: var(--nhan); }
+
+/* Nút "i" — chữ, không icon hình ảnh, khung tròn nhỏ dễ bấm/chạm. */
+.chon-di-ung-gt__chi-tiet { flex: none; }
+.chon-di-ung-gt__chi-tiet summary {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--vien-dam);
+  border-radius: var(--bo-tron);
+  font-size: var(--cd-nho);
+  font-weight: 700;
+  font-style: italic;
+  color: var(--chu-nhat);
+  cursor: pointer;
+  list-style: none;
+}
+.chon-di-ung-gt__chi-tiet summary::-webkit-details-marker { display: none; }
+.chon-di-ung-gt__chi-tiet[open] summary { color: var(--nhan-dam); border-color: var(--nhan-dam); }
+.chon-di-ung-gt__chi-tiet p {
+  margin: 6px 0 0;
+  max-width: 220px;
+  line-height: 1.5;
 }
 
 .chon-buoi { display: flex; flex-wrap: wrap; gap: var(--kc-3); }

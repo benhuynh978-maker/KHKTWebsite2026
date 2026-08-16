@@ -9,9 +9,13 @@
       từ `form.cac_buoi_ap_dung.length` (không cần field so_bua riêng —
       bảng `lo_trinh` không có cột này, tránh phải sửa schema).
    2. Triết lý "bất khả": theo test/ — CHỈ dị ứng (tầng 4, an toàn tính
-      mạng) còn chặn cứng. Ngân sách/tồn kho/sàn canxi-sắt/ghi chú "tránh
-      cay" đều chuyển thành CẢNH BÁO đi kèm kết quả thành công (mảng
-      `canhBao`), khác 5 tầng chặn cứng của bản tạm trước đây.
+      mạng) còn chặn cứng. Tồn kho/sàn canxi-sắt/ghi chú "tránh cay" đều
+      chuyển thành CẢNH BÁO đi kèm kết quả thành công (mảng `canhBao`),
+      khác 5 tầng chặn cứng của bản tạm trước đây. Riêng NGÂN SÁCH: từ
+      10/08/2026 có thêm 1 tầng chặn cứng MỚI (sàn tối thiểu theo số bữa,
+      xem SAN_NGAN_SACH_TUAN ở thamSoLoTrinh.js) — quyết định chính sách
+      riêng ngoài phạm vi triết lý "luôn sinh được" gốc của test/, KHÁC với
+      việc ngân sách VƯỢT dự kiến trong lúc mô phỏng (vẫn chỉ là cảnh báo).
    3. Chống lặp Giai đoạn 4 (ghi nhận thật, xem api.js:layMonKhopKhung)
       không có tiền lệ ở test/ (test/ chưa từng làm Giai đoạn 4) — tự thiết
       kế dựa trên lịch sử ghi nhận thật, không phải mô phỏng.
@@ -26,10 +30,12 @@ import { tien, TEN_BUOI } from './dinhDang.js'
 import { monAnToanChoDiUng } from './diUng.js'
 import { tinhDiem } from './chamDiem.js'
 import { THAM_SO_CHUAN } from './thamSoChamDiem.js'
-import { TI_LE_BUA, SO_UNG_VIEN_TOP, KHOANG_CACH_CHONG_LAP, BUOC_NOI_RONG_TOP } from './thamSoLoTrinh.js'
+import {
+  TI_LE_BUA, SO_UNG_VIEN_TOP, KHOANG_CACH_CHONG_LAP, BUOC_NOI_RONG_TOP, SAN_NGAN_SACH_TUAN,
+  BAN_KINH_MAC_DINH_M, SAN_GIA_MOT_BUA,
+} from './thamSoLoTrinh.js'
 
 const NGUON_THEO_BUOI = { sang: 'quan_ngoai', trua: 'cang_tin', chieu: 'quan_ngoai', toi: 'quan_ngoai' }
-const BAN_KINH_MAC_DINH = 800
 
 export const TEN_MUC_DICH = {
   du_chat_trong_ngan_sach: 'Đủ chất trong ngân sách',
@@ -117,8 +123,8 @@ export function xayKhungMoiBuoi(hoSo, form) {
       kcal_min: Math.round(kcalBua * THAM_SO_CHUAN.daiKcal.a),
       kcal_max: Math.round(kcalBua * THAM_SO_CHUAN.daiKcal.b),
       dam_min: Math.round(damBuaCanDuoi),
-      gia_max: Math.max(1000, Math.round((form.ngan_sach_tuan / 7) * tiLe)),
-      ban_kinh_m: NGUON_THEO_BUOI[buoi] === 'cang_tin' ? null : BAN_KINH_MAC_DINH,
+      gia_max: Math.max(SAN_GIA_MOT_BUA, Math.round((form.ngan_sach_tuan / 7) * tiLe)),
+      ban_kinh_m: NGUON_THEO_BUOI[buoi] === 'cang_tin' ? null : BAN_KINH_MAC_DINH_M,
     }
   }
   return { khungMoiBuoi }
@@ -185,19 +191,34 @@ function chonMonMoPhongBua(monAnToan, khung, rangBuocGhiChu, mucTieuBua, lichSuD
 /* =========================================================================
    TIỀN KIỂM + SINH LỘ TRÌNH
    -------------------------------------------------------------------------
-   CHỈ còn 1 điều kiện chặn cứng (an toàn dị ứng — tầng 4). Mọi thứ khác
-   (ngân sách, tồn kho/lặp món, sàn canxi/sắt, ghi chú "tránh cay") LUÔN
-   được xử lý bằng cách chọn phương án tốt nhất có thể + ghi cảnh báo, đúng
-   triết lý test/ đã chốt từ lúc bàn ý tưởng ("không bao giờ báo bất khả",
-   xem test/lich-su/lo-trinh.md mục "Đã cân nhắc và bỏ").
+   2 điều kiện chặn cứng: an toàn dị ứng (tầng 4) VÀ sàn ngân sách/tuần
+   (tầng 'ngan_sach', thêm 10/08/2026 — quyết định chính sách riêng, dưới
+   sàn coi là tiếp tay gây hại, không phải vấn đề "chọn được món hay không"
+   nên không thể xử lý bằng cảnh báo như các mục dưới). Mọi thứ khác (tồn
+   kho/lặp món, sàn canxi/sắt, ghi chú "tránh cay") LUÔN được xử lý bằng
+   cách chọn phương án tốt nhất có thể + ghi cảnh báo, đúng triết lý test/
+   đã chốt từ lúc bàn ý tưởng ("không bao giờ báo bất khả", xem
+   test/lich-su/lo-trinh.md mục "Đã cân nhắc và bỏ").
    ========================================================================= */
 export function chayTienKiemVaSinhLoTrinh(hoSo, form, rangBuocGhiChu) {
+  const soBua = form.cac_buoi_ap_dung.length
+
+  // Tầng ngân sách — chặn TRƯỚC tầng dị ứng (rẻ hơn, không cần lọc món).
+  // Kiểm theo soBua thật (KHÔNG suy ngược từ form.so_bua — field đó không
+  // tồn tại, xem ghi chú đầu file) để không lệch với sàn form đã chặn.
+  const sanNganSach = SAN_NGAN_SACH_TUAN[soBua]
+  if (sanNganSach != null && form.ngan_sach_tuan < sanNganSach) {
+    return {
+      khaThi: false, tang: 'ngan_sach',
+      lyDo: `Ngân sách tuần (${tien(form.ngan_sach_tuan)}) thấp hơn mức tối thiểu ${tien(sanNganSach)} cho lộ trình ${soBua} bữa/ngày — mức này đảm bảo lộ trình có đủ món đạt dinh dưỡng cơ bản, không phải giới hạn kỹ thuật. Hãy quay lại form tăng ngân sách.`,
+    }
+  }
+
   const { khungMoiBuoi } = xayKhungMoiBuoi(hoSo, form)
   const tatCaMon = layTatCaMonKemQuanNoiBo()
-  const soBua = form.cac_buoi_ap_dung.length
   const tiLeBang = TI_LE_BUA[soBua]
 
-  // Tầng 4 — loại trừ dị ứng TRƯỚC khi xét các tầng khác. CHỈ tầng này còn
+  // Tầng 4 — loại trừ dị ứng TRƯỚC khi xét các tầng khác. Tầng CÒN LẠI vẫn
   // chặn cứng: an toàn tính mạng, không thể "cứ chọn liều một món".
   const monAnToan = tatCaMon.filter((m) => monAnToanChoDiUng(m, hoSo.di_ung))
   for (const buoi of form.cac_buoi_ap_dung) {

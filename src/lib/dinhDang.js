@@ -52,3 +52,11 @@ export const TEN_NGUON = {
   cang_tin: 'Căng tin',
   quan_ngoai: 'Quán ngoài',
 }
+
+/* Hồ sơ lưu mã không dấu (thap/vua/cao) — phải tra qua bảng này trước khi
+   hiện ra màn hình, đừng in thẳng mã ("vận động vua" là sai chính tả). */
+export const TEN_MUC_VAN_DONG = {
+  thap: 'Thấp',
+  vua: 'Vừa',
+  cao: 'Cao',
+}
