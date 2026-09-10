@@ -276,7 +276,10 @@ export default function KhoiGoiYNhanh({ onChonMon }) {
                     {t.monList.map((m) => (
                       <div className="khoi-mon-chat" key={m.id}>
                         <TheMon mon={m} onChon={onChonMon} />
-                        {m.goiYBoSung && (
+                        {/* ẨN 02/09/2026 (yêu cầu riêng, tạm thời) — KHÔNG xoá
+                            m.goiYBoSung (vẫn tính ở api.js), chỉ bỏ render.
+                            Mở lại: bỏ comment khối dưới đây. */}
+                        {/* {m.goiYBoSung && (
                           <div className="goi-y-bo-sung">
                             <p className="goi-y-bo-sung__tieu-de chu-nhat">
                               Có thể bổ sung thêm (tuỳ chọn){' '}
@@ -299,7 +302,7 @@ export default function KhoiGoiYNhanh({ onChonMon }) {
                             )}
                             <MienTru gonGang />
                           </div>
-                        )}
+                        )} */}
                       </div>
                     ))}
                   </div>

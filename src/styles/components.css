@@ -36,7 +36,7 @@
   bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(6, 1fr); /* 6 mục — "Lộ trình" ẩn 02/09/2026, xem BoCuc.jsx */
   background: rgba(255, 255, 255, .94);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--vien);

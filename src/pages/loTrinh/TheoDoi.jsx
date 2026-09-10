@@ -269,7 +269,10 @@ export default function TheoDoi({ loTrinh, onHuy }) {
         )
       })}
 
-      {hienBangGoiY && !dangMoGhiNhanTuGoiY && (
+      {/* ẨN 02/09/2026 (yêu cầu riêng, tạm thời) — KHÔNG xoá hienBangGoiY/
+          goiYBoSungHomNay (vẫn tính ở đầu component), chỉ bỏ render. Mở
+          lại: bỏ comment khối dưới đây. */}
+      {/* {hienBangGoiY && !dangMoGhiNhanTuGoiY && (
         <div className="modal-nen" onClick={() => datTenGoiYDaBoQua(goiYBoSungHomNay.phuTro.ten)}>
           <div className="modal-mon" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="modal-mon__than">
@@ -292,7 +295,7 @@ export default function TheoDoi({ loTrinh, onHuy }) {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {dangMoGhiNhanTuGoiY && (
         <GhiNhanPhuTro

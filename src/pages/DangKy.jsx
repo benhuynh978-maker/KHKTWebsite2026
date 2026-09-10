@@ -15,6 +15,7 @@ import { dangKyThat } from '../data/supabase/khoXacThuc.js'
 import { datTenAoBanDau } from '../data/api.js'
 import { DANH_SACH_TEN_GIA_GOI_Y } from '../data/mock/tenGiaGoiY.js'
 import { xaoTron } from '../lib/xepThuTu.js'
+import ThongTinGoiY from '../components/ThongTinGoiY.jsx'
 
 export default function DangKy() {
   const navigate = useNavigate()
@@ -53,7 +54,10 @@ export default function DangKy() {
 
           <form className="trang-xac-thuc__form" onSubmit={guiDangKy}>
             <div className="truong-form">
-              <span className="truong-form__nhan">Tên (giả)</span>
+              <span className="truong-form__nhan-hang">
+                <span className="truong-form__nhan">Tên (giả)</span>
+                <ThongTinGoiY noiDung="Tên giả này sẽ giúp ẩn danh tính của bạn đi nhằm phòng tránh việc bị lộ thông tin cơ thể của bạn." />
+              </span>
               <div className="ten-gia-hang">
                 <input
                   type="text"
@@ -81,7 +85,10 @@ export default function DangKy() {
             </div>
 
             <label className="truong-form">
-              <span className="truong-form__nhan">Tên tài khoản</span>
+              <span className="truong-form__nhan-hang">
+                <span className="truong-form__nhan">Tên tài khoản</span>
+                <ThongTinGoiY noiDung="Tên mà bạn sẽ dùng để đăng nhập vào tài khoản này. Không bắt buộc bạn nhập mail." />
+              </span>
               <input
                 type="text" autoComplete="username"
                 value={tenTaiKhoan}

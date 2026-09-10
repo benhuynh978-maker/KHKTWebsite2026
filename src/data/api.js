@@ -630,12 +630,24 @@ export const goiYNhanh = (loai) => {
    dùng engine chấm điểm thật (Pha 0) thay vì gọi lại box.js trực tiếp trong
    tool như test/.
 
-   ⚠ KHÔNG tự đọc hồ sơ đã lưu (chốt 03/08/2026 ở test/, giữ nguyên chính
-   sách khi port — 07/08/2026 người dùng xác nhận giữ, xem NHAT-KY-AI.md):
-   AI phải HỎI dị ứng/nhu cầu trong hội thoại, không tự lấy dữ liệu cá nhân
-   gửi cho Gemini (bên thứ ba). Vì vậy luôn chấm điểm theo hồ sơ MẶC ĐỊNH
-   (layHoSoMauChat) — hệ quả tất yếu của chính sách đó, không phải quên nối
-   hồ sơ thật. */
+   Từ 01/09/2026 (đọc hồ sơ thật để chấm điểm): tim_mon chấm điểm theo
+   layHoSo() — hồ sơ THẬT của học sinh, đã có sẵn trong bộ nhớ từ lúc
+   CongDuLieu.jsx tải lúc vào trang (KHÔNG gọi thêm Supabase). Mục tiêu
+   kcal/canxi/sắt/kẽm dùng để xếp hạng món giờ khớp đúng thể trạng thật
+   (tuổi/giới/vận động) thay vì hồ sơ mẫu cố định trước đây.
+
+   ⚠ Dị ứng VẪN giữ nguyên chính sách cũ — AI vẫn phải HỎI trong hội thoại
+   (chốt 03/08/2026 ở test/, xác nhận lại 01/09/2026 khi mở phần chấm
+   điểm): bộ lọc an toàn dị ứng là loại cứng ảnh hưởng tính mạng, tự động
+   lấy từ hồ sơ có rủi ro thật (hồ sơ chưa cập nhật dị ứng mới, hoặc học
+   sinh hỏi hộ người khác) — hỏi trực tiếp là lớp xác nhận sống trước một
+   quyết định an toàn, không phải sơ suất quên nối.
+
+   ⚠ KHÔNG gửi tuổi/giới/mục tiêu dinh dưỡng lên Gemini — toàn bộ việc
+   chấm điểm bằng hồ sơ thật chạy Ở MÁY NGƯỜI DÙNG (box.js/chamDiem.js),
+   Gemini chỉ nhận KẾT QUẢ món đã lọc qua tomTatMonChoAI() (tên/giá/quán/
+   giờ bán), giống hệt trước đây — không có trường hồ sơ nào rời khỏi máy
+   người dùng để tới bên thứ ba. */
 
 const TIEU_CHI_SANG_BOX_CHAT = {
   goi_y: 'nhanh',
@@ -648,14 +660,6 @@ const TIEU_CHI_SANG_BOX_CHAT = {
 }
 const CAC_BUOI_HOP_LE_CHAT = new Set(['sang', 'trua', 'chieu', 'toi'])
 const SO_LUONG_TOI_DA_CHAT = 3
-
-let mucTieuMacDinhChat = null
-function layHoSoMauChat() {
-  if (!mucTieuMacDinhChat) {
-    mucTieuMacDinhChat = tinhMucTieuDinhDuong({ tuoi: 17, gioi: 'nam', muc_van_dong: 'vua', hap_thu_sat: 'trungBinh', hap_thu_kem: 'vua' })
-  }
-  return mucTieuMacDinhChat
-}
 
 function boDauTiengVietChat(s) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
@@ -720,7 +724,7 @@ export const timMonChat = (thamSo, maMonDaGoiY) => {
     diUngDaChon: Array.isArray(thamSo.di_ung) ? thamSo.di_ung : [],
   }
 
-  const dsXepHang = xepHangMon(layTatCaMonKemQuan(), layHoSoMauChat(), box.thamSo)
+  const dsXepHang = xepHangMon(layTatCaMonKemQuan(), layHoSo(), box.thamSo)
     .filter((x) => !quanLoaiTru.has(x.mon.quan?.ten_quan))
   const dsHienThi = box.locUngVien(dsXepHang, boiCanh)
   if (dsHienThi.length === 0) return { timDuoc: false, lyDo: box.thongBao.khoRong }
@@ -735,14 +739,14 @@ export const timMonChat = (thamSo, maMonDaGoiY) => {
   }
   if (ketQua.length === 0) return { timDuoc: false, lyDo: box.thongBao.hetDuLieu || box.thongBao.khoRong }
 
-  const mucTieu = layHoSoMauChat()
+  const mucTieu = layHoSo()
   const monListVoiBoSung = ketQua.map((m) => ({
     ...m,
     goiYBoSung: tinhGoiYBoSungChoMon(m, boiCanh.diUngDaChon, mucTieu),
     // Gắn kèm để UI dùng khi mở luồng "Ghi nhận" thật (lọc sản phẩm theo
-    // đúng dị ứng học sinh đã khai TRONG TIN NHẮN NÀY, không đọc hồ sơ đã
-    // lưu — cùng chính sách "chat không tự đọc hồ sơ" áp dụng cho gợi ý bổ
-    // sung ở trên).
+    // đúng dị ứng học sinh đã khai TRONG TIN NHẮN NÀY, KHÔNG dùng
+    // hoSo.di_ung thật — dị ứng vẫn giữ chính sách "phải hỏi trong hội
+    // thoại", xem ghi chú đầu khối CHAT AI).
     diUngDaChon: boiCanh.diUngDaChon,
   }))
 

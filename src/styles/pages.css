@@ -327,6 +327,12 @@
 
 .truong-form__nhan { font-weight: 600; font-size: var(--cd-phu); }
 
+.truong-form__nhan-hang {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kc-1);
+}
+
 .truong-form input[type='number'],
 .truong-form input[type='text'],
 .truong-form input[type='password'],

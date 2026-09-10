@@ -76,8 +76,10 @@ export default function AnGiHomNay() {
 
   return (
     <>
-      {/* ---- KHU A — ĐỀ XUẤT NỔI BẬT (§2.1) --------------------------- */}
-      <Khoi tieuDe="Đề xuất nổi bật" phu="Được chọn nhiều nhất 7 ngày qua">
+      {/* ---- KHU A — ĐỀ XUẤT NỔI BẬT (§2.1) -----------------------------
+          ẨN 02/09/2026 (yêu cầu riêng) — KHÔNG xoá state/fetch deXuatNoiBat
+          phía trên, chỉ bỏ render. Mở lại: bỏ comment khối dưới đây. */}
+      {/* <Khoi tieuDe="Đề xuất nổi bật" phu="Được chọn nhiều nhất 7 ngày qua">
         {deXuatNoiBat.length === 0 ? (
           <TrangThaiRong>Chưa có dữ liệu 7 ngày qua.</TrangThaiRong>
         ) : (
@@ -87,7 +89,7 @@ export default function AnGiHomNay() {
             ))}
           </div>
         )}
-      </Khoi>
+      </Khoi> */}
 
       {/* ---- KHU B — DUYỆT TOÀN BỘ (§2.2) ------------------------------ */}
       <Khoi tieuDe="Duyệt toàn bộ">

@@ -5,12 +5,15 @@
    dưới KHÔNG phải yêu cầu từ tài liệu nào — chỉ là quy ước UI mobile
    thường gặp mà nhóm tự đặt ban đầu. Theo yêu cầu của bạn, "Quán ăn gần
    đây" là trang riêng nên không gộp, và Phân tích cũng được đưa vào thanh
-   dưới luôn (không có trong tài liệu nào yêu cầu giấu nó) — thanh dưới
-   hiện có 7 mục. Số cột lưới tương ứng đặt ở `.thanh-duoi` trong
-   components.css (repeat(7, 1fr)) — sửa cả hai chỗ nếu đổi số mục.
+   dưới luôn (không có trong tài liệu nào yêu cầu giấu nó). Số cột lưới
+   tương ứng đặt ở `.thanh-duoi` trong components.css (repeat(N, 1fr)) —
+   sửa cả hai chỗ nếu đổi số mục.
    Riêng Cài đặt vẫn đi vào qua đường dẫn lối từ trang Hồ sơ (tần suất
    dùng thấp hơn, đúng tinh thần Dashboard §1.1 "DẪN LỐI sang các trang
    chức năng").
+
+   02/09/2026 (yêu cầu riêng) — ẨN mục "Lộ trình" khỏi thanh dưới (xem ghi
+   chú ngay tại mảng MUC bên dưới), thanh dưới còn 6 mục.
 
    Lưu ý riêng tư: thanh đầu trang hiển thị TÊN ẢO, không hiển thị mã 6 số.
    Mã 6 số vừa là định danh vừa là thứ dùng để đăng nhập, nên không đặt nó
@@ -28,9 +31,12 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { layHoSo } from '../data/api.js'
 
+/* 02/09/2026 (yêu cầu riêng) — ẨN mục "Lộ trình" khỏi thanh dưới, KHÔNG
+   xoá trang: route /lo-trinh (App.jsx) và LoTrinh.jsx vẫn nguyên vẹn, chỉ
+   không còn lối vào từ thanh điều hướng. 6 mục còn lại — nhớ đồng bộ
+   repeat(N, 1fr) ở .thanh-duoi (components.css) nếu đổi số mục ở đây. */
 const MUC = [
   { den: '/',                nhan: 'Trang chủ', icon: '⌂' },
-  { den: '/lo-trinh',        nhan: 'Lộ trình',  icon: '▤' },
   { den: '/an-gi-hom-nay',   nhan: 'Ăn gì',     icon: '◍' },
   { den: '/quan-an-gan-day', nhan: 'Quán ăn',   icon: '⌖' },
   { den: '/lich-su',         nhan: 'Lịch sử',   icon: '↺' },

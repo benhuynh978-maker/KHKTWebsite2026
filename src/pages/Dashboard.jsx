@@ -22,7 +22,7 @@
    liệu gốc, không phải thứ tự hiển thị thật.
    ========================================================================= */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import Khoi from '../components/Khoi.jsx'
@@ -39,8 +39,10 @@ import KhoiGoiYNhanh from '../components/KhoiGoiYNhanh.jsx'
 import {
   layLoTrinhDangChay, layMonHomNay, layHoSo, layTomTatDinhDuongHomNay,
   layDeXuatNoiBat, layQuanGoiY, layChiPhi7NgayRutGon,
+  layTatCaMonKemQuan, layTatCaQuanKemMon,
 } from '../data/api.js'
-import { tien, khoangCach, TEN_BUOI } from '../lib/dinhDang.js'
+import { tien, khoangCach, boDauChu, TEN_BUOI } from '../lib/dinhDang.js'
+import { monAnToanChoDiUng } from '../lib/diUng.js'
 
 export default function Dashboard() {
   // MỘT modal dùng chung cho MỌI thẻ món trên Dashboard (Khối 1/4/5),
@@ -52,6 +54,10 @@ export default function Dashboard() {
 
   return (
     <>
+      {/* ---- TÌM KIẾM NHANH (thêm 02/09/2026, yêu cầu riêng) -----------
+          Đưa lên ĐẦU TIÊN (02/09/2026, yêu cầu riêng), trên cả Khối 5. */}
+      <KhoiTimKiemNhanh onChonMon={datMonDangXem} />
+
       {/* ---- KHỐI 5 — GỢI Ý NHANH (đưa lên đầu, xem ghi chú đầu file) --- */}
       <KhoiGoiYNhanh onChonMon={datMonDangXem} />
 
@@ -64,11 +70,16 @@ export default function Dashboard() {
       {/* ---- KHỐI 2 — PHÂN TÍCH (luôn hiện) ---------------------------- */}
       <KhoiPhanTich />
 
-      {/* ---- KHỐI 4 — MÓN ĂN ĐỀ XUẤT ----------------------------------- */}
-      <KhoiMonDeXuat onChonMon={datMonDangXem} />
+      {/* ---- KHỐI 4 — MÓN ĂN ĐỀ XUẤT -----------------------------------
+          ẨN 02/09/2026 (yêu cầu riêng) — KHÔNG xoá hàm KhoiMonDeXuat bên
+          dưới lẫn trang "Ăn gì hôm nay" mà khối này dẫn tới, chỉ bỏ dòng
+          render này. Mở lại: bỏ comment dòng dưới. */}
+      {/* <KhoiMonDeXuat onChonMon={datMonDangXem} /> */}
 
-      {/* ---- KHỐI 3 — QUÁN ĂN GỢI Ý ------------------------------------ */}
-      <KhoiQuanGoiY />
+      {/* ---- KHỐI 3 — QUÁN ĂN GỢI Ý ------------------------------------
+          ẨN 02/09/2026 (yêu cầu riêng) — cùng cách xử lý với Khối 4 ở
+          trên, xem ghi chú ngay phía trên. */}
+      {/* <KhoiQuanGoiY /> */}
 
       {/* R-31 — trang hiển thị dữ liệu dinh dưỡng cá nhân (§1.3) */}
       <MienTru />
@@ -268,6 +279,104 @@ function HaiVongTron() {
         </p>
       )}
     </div>
+  )
+}
+
+/* =========================================================================
+   TÌM KIẾM NHANH (thêm 02/09/2026, yêu cầu riêng) — thay cho việc phải
+   sang "Ăn gì hôm nay"/"Quán ăn gần đây" chỉ để tra 1 món/quán. Logic lọc
+   Y HỆT 2 trang đó (không phát minh công thức mới):
+     - Món: layTatCaMonKemQuan() + khớp ten_mon HOẶC ten_quan (boDauChu,
+       không phân biệt dấu) + an toàn dị ứng theo hồ sơ — xem
+       pages/AnGiHomNay.jsx:monKhopLoc.
+     - Quán: layTatCaQuanKemMon() + khớp ten_quan — xem
+       pages/QuanAnGanDay.jsx:dsHienThi.
+   CỐ Ý không mang theo bộ lọc buổi/giá/khoảng cách của 2 trang gốc (yêu
+   cầu riêng: "chỉ ô nhập từ khoá cho gọn/nhanh") — dị ứng vẫn luôn lọc
+   NGẦM vì đó là an toàn, không phải một tuỳ chọn bộ lọc UI để lược bớt.
+   Rỗng từ khoá thì không hiện gì (tránh tràn Dashboard ngay lúc mới vào).
+   Giới hạn 6 món/4 quán — cùng cỡ giới hạn đã dùng ở các khối rút gọn
+   khác của Dashboard trước đây (Khối 4/3). Bấm món mở ĐÚNG modal dùng
+   chung của Dashboard (onChonMon) — không tạo modal riêng. Thẻ quán dùng
+   lại nguyên cách hiển thị của KhoiQuanGoiY (nay đã ẩn) — không có hành
+   động bấm, đúng nguyên tắc §1.2 "Dashboard không ghi dữ liệu". */
+
+const GIOI_HAN_MON_KHOP = 6
+const GIOI_HAN_QUAN_KHOP = 4
+
+function KhoiTimKiemNhanh({ onChonMon }) {
+  const hoSo = layHoSo()
+  const [tuKhoa, datTuKhoa] = useState('')
+  const daGoTuKhoa = tuKhoa.trim().length > 0
+
+  const monKhop = useMemo(() => {
+    const tk = boDauChu(tuKhoa.trim())
+    if (!tk) return []
+    return layTatCaMonKemQuan()
+      .filter((m) => {
+        if (!boDauChu(m.ten_mon).includes(tk) && !boDauChu(m.quan.ten_quan).includes(tk)) return false
+        if (!monAnToanChoDiUng(m, hoSo.di_ung)) return false
+        return true
+      })
+      .slice(0, GIOI_HAN_MON_KHOP)
+  }, [tuKhoa, hoSo])
+
+  const quanKhop = useMemo(() => {
+    const tk = boDauChu(tuKhoa.trim())
+    if (!tk) return []
+    return layTatCaQuanKemMon()
+      .filter((q) => boDauChu(q.ten_quan).includes(tk))
+      .slice(0, GIOI_HAN_QUAN_KHOP)
+  }, [tuKhoa])
+
+  return (
+    <Khoi tieuDe="Tìm nhanh món & quán">
+      <input
+        className="o-tim-kiem"
+        type="search"
+        placeholder="Tìm theo tên món hoặc tên quán..."
+        value={tuKhoa}
+        onChange={(e) => datTuKhoa(e.target.value)}
+      />
+
+      {daGoTuKhoa && (
+        <>
+          <p className="muc-tieu-khoa__tieu-de">Món khớp</p>
+          {monKhop.length === 0 ? (
+            <TrangThaiRong>Không có món nào khớp.</TrangThaiRong>
+          ) : (
+            <div className="dai-ngang">
+              {monKhop.map((m) => <TheMon key={m.id} mon={m} onChon={onChonMon} />)}
+            </div>
+          )}
+
+          <p className="muc-tieu-khoa__tieu-de">Quán khớp</p>
+          {quanKhop.length === 0 ? (
+            <TrangThaiRong>Không có quán nào khớp.</TrangThaiRong>
+          ) : (
+            <ul className="ds-quan">
+              {quanKhop.map((q) => {
+                const diaChiSdt = [q.dia_chi, q.so_dien_thoai ? `📞 ${q.so_dien_thoai}` : null]
+                  .filter(Boolean)
+                  .join(' · ')
+                return (
+                  <li className="ds-quan__dong" key={q.id}>
+                    <div className="ds-quan__hang-tren">
+                      <div className="day">
+                        <p className="ds-quan__ten">{q.ten_quan}</p>
+                        <p className="chu-nho chu-nhat">{q.khoang_gio_hoat_dong}</p>
+                      </div>
+                      <span className="chu-nho chu-nhat">{khoangCach(q.khoang_cach_m)}</span>
+                    </div>
+                    {diaChiSdt && <p className="chu-be chu-nhat ds-quan__phu">{diaChiSdt}</p>}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </>
+      )}
+    </Khoi>
   )
 }
 
