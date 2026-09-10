@@ -51,6 +51,24 @@ import DanhGiaSao from './DanhGiaSao.jsx'
 import BangBinhLuan from './BangBinhLuan.jsx'
 import BaoCaoVanDe from './BaoCaoVanDe.jsx'
 
+// Link Google Maps — thêm 02/09/2026, yêu cầu riêng. Không dùng
+// target="_blank" trên điện thoại: đó là window.open(), kém tin cậy hơn
+// điều hướng thường trong việc để hệ điều hành tự bật ĐÚNG app Google Maps
+// (Universal Links/App Links), đặc biệt trên iOS Safari — có lúc chỉ mở
+// trang web Maps trong tab thay vì app thật. Desktop thì ngược lại, luôn
+// muốn tab mới để không mất chỗ đang xem. Phân biệt bằng cùng kỹ thuật đã
+// dùng ở ThongTinGoiY.jsx (matchMedia('(hover: hover)') — máy có chuột
+// thật mới coi là desktop, không suy đoán qua User-Agent).
+const CO_CHUOT_THAT = typeof window !== 'undefined'
+  && window.matchMedia('(hover: hover)').matches
+
+// Ghép tên quán + địa chỉ (không chỉ địa chỉ) — Google Maps tra đúng hơn
+// khi địa chỉ khảo sát chưa đủ chi tiết (thiếu số nhà, tên hẻm...).
+function urlGoogleMaps(quan) {
+  const tuKhoa = [quan?.ten_quan, quan?.dia_chi].filter(Boolean).join(', ')
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tuKhoa)}`
+}
+
 // Dữ liệu Supabase thật hiện chưa có cột sai_so_* nào được nhập (toàn null)
 // — ẩn hẳn cụm "(±...)" khi thiếu, không hiện "(±)" rỗng trông như số liệu.
 function BienSaiSo({ giaTri }) {
@@ -122,16 +140,50 @@ export default function ModalMon({ mon, onDong, onDaGhiNhan, chiXem }) {
               <p className="chu-nhat">
                 {quan?.ten_quan} · {khoangCach(quan?.khoang_cach_m)}
               </p>
-              {/* Địa chỉ/SĐT — 15/08/2026, yêu cầu riêng. Ẩn hẳn nếu quán
-                  chưa có (không hiện "Chưa có địa chỉ" gây khó nhìn), cùng
-                  nguyên tắc SĐT đang dùng ở TheMon.jsx/QuanAnGanDay.jsx. */}
-              {(quan?.dia_chi || quan?.so_dien_thoai) && (
-                <p className="chu-nho chu-nhat">
-                  {[quan?.dia_chi, quan?.so_dien_thoai ? `📞 ${quan.so_dien_thoai}` : null]
-                    .filter(Boolean)
-                    .join(' · ')}
+              {/* Địa chỉ/SĐT/Maps/ShopeeFood/GrabFood — đổi 02/09/2026 (yêu
+                  cầu riêng): LUÔN hiện đủ 5 dòng nhãn, giá trị thiếu thì
+                  hiện "Chưa có" thay vì ẩn hẳn dòng đó (khác quy ước cũ từ
+                  15/08/2026 — đã đổi theo quyết định mới, đồng bộ cho cả 5
+                  mục). ShopeeFood/GrabFood ở CẤP MÓN (mon.link_*, không
+                  phải quan.link_*) — xem sql/21-them-link-giao-do-an-mon.sql. */}
+              <div className="modal-mon__thong-tin-quan">
+                <p className="chu-nho">
+                  <span className="chu-nhat">Địa chỉ: </span>
+                  {quan?.dia_chi || 'Chưa có'}
                 </p>
-              )}
+                <p className="chu-nho">
+                  <span className="chu-nhat">Điện thoại: </span>
+                  {quan?.so_dien_thoai || 'Chưa có'}
+                </p>
+                <p className="chu-nho">
+                  <span className="chu-nhat">Google Maps: </span>
+                  {quan?.dia_chi ? (
+                    <a
+                      className="lien-ket"
+                      href={urlGoogleMaps(quan)}
+                      {...(CO_CHUOT_THAT ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    >
+                      Mở Google Maps
+                    </a>
+                  ) : 'Chưa có'}
+                </p>
+                <p className="chu-nho">
+                  <span className="chu-nhat">ShopeeFood: </span>
+                  {mon.link_shopee_food ? (
+                    <a className="lien-ket" href={mon.link_shopee_food} target="_blank" rel="noopener noreferrer">
+                      Đặt trên ShopeeFood
+                    </a>
+                  ) : 'Chưa có'}
+                </p>
+                <p className="chu-nho">
+                  <span className="chu-nhat">GrabFood: </span>
+                  {mon.link_grab_food ? (
+                    <a className="lien-ket" href={mon.link_grab_food} target="_blank" rel="noopener noreferrer">
+                      Đặt trên GrabFood
+                    </a>
+                  ) : 'Chưa có'}
+                </p>
+              </div>
             </div>
 
             <div className="modal-mon__gia-hang">

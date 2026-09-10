@@ -214,6 +214,10 @@ export async function taiKhoVi4() {
       // sánh được (ngayBanVaNghi() ở trên chỉ ra chuỗi hiển thị, không so
       // sánh được). null = chưa khảo sát, KHÔNG loại (khác có nghỉ thật).
       ngay_nghi: q ? q.ngay_nghi : null,
+      // Thêm 02/09/2026 — link đặt món qua ShopeeFood/GrabFood, CẤP MÓN
+      // (không phải cấp quán). null = chưa khảo sát, xem sql/21-....sql.
+      link_shopee_food: m.link_shopee_food,
+      link_grab_food: m.link_grab_food,
     }
   })
 

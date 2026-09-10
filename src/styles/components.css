@@ -672,6 +672,16 @@
 
 .modal-mon__thanh-phan { font-size: var(--cd-phu); line-height: 1.5; }
 
+/* Danh sách "Nhãn: giá trị" (địa chỉ/SĐT/Maps/ShopeeFood/GrabFood) — thêm
+   02/09/2026. Mỗi dòng LUÔN hiện nhãn, giá trị thiếu thì hiện "Chưa có"
+   thay vì ẩn cả dòng (đổi từ quy ước "ẩn hẳn nếu thiếu" trước đó, yêu cầu
+   riêng: đồng bộ cả 5 mục theo một kiểu duy nhất). */
+.modal-mon__thong-tin-quan {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .modal-mon__da-ghi {
   text-align: center;
   font-weight: 600;
